@@ -14,7 +14,7 @@ class Index extends Component
 
     // Propriedades para o formulário
     public bool $showModal = false;
-    public ?Raffle $editingRaffle; // Guarda a rifa que estamos editando
+    public ?Raffle $editingRaffle = null;
 
     public string $title = '';
     public string $description = '';
@@ -42,7 +42,8 @@ class Index extends Component
     public function create(): void
     {
         $this->resetValidation();
-        $this->reset(); // Reseta todas as propriedades
+        $this->reset();
+        $this->editingRaffle = null;
         $this->showModal = true;
     }
 
@@ -52,7 +53,6 @@ class Index extends Component
         $this->resetValidation();
         $this->editingRaffle = $raffle;
 
-        // Preenche o formulário com os dados da rifa
         $this->title = $raffle->title;
         $this->description = $raffle->description;
         $this->ticket_price = $raffle->ticket_price;
@@ -75,7 +75,6 @@ class Index extends Component
         try {
             DB::transaction(function () {
                 if ($this->editingRaffle) {
-                    // --- LÓGICA DE ATUALIZAÇÃO ---
                     $this->editingRaffle->update([
                         'title' => $this->title,
                         'description' => $this->description,
@@ -83,7 +82,6 @@ class Index extends Component
                     ]);
                     session()->flash('success', 'Rifa atualizada com sucesso!');
                 } else {
-                    // --- LÓGICA DE CRIAÇÃO (já existia) ---
                     $raffle = Raffle::create([
                         'title' => $this->title,
                         'description' => $this->description,
@@ -110,13 +108,23 @@ class Index extends Component
         }
     }
 
-    // (O método activateRaffle continua o mesmo)
     public function activateRaffle(Raffle $raffle): void
     {
         if ($raffle->status === 'pending') {
             $raffle->update(['status' => 'active']);
             session()->flash('success', 'Rifa ativada com sucesso!');
         }
+    }
+
+    public function cancelRaffle(Raffle $raffle): void
+    {
+        if ($raffle->tickets()->where('status', 'paid')->exists()) {
+            session()->flash('error', 'Não é possível cancelar uma rifa que já possui cotas vendidas.');
+            return;
+        }
+
+        $raffle->update(['status' => 'cancelled']);
+        session()->flash('success', 'Rifa cancelada com sucesso.');
     }
 
     public function render()

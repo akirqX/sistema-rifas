@@ -2,14 +2,12 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            <!-- Botão para abrir a modal de criação -->
             <div class="flex justify-end mb-4">
                 <button wire:click="create" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                     + Nova Rifa
                 </button>
             </div>
 
-            <!-- Mensagens de Feedback (Sucesso/Erro) -->
             @if (session()->has('success'))
                 <div class="bg-green-200 text-green-800 p-4 rounded mb-4">{{ session('success') }}</div>
             @endif
@@ -17,7 +15,6 @@
                 <div class="bg-red-200 text-red-800 p-4 rounded mb-4">{{ session('error') }}</div>
             @endif
 
-            <!-- Card Branco com a Tabela -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     <div class="overflow-x-auto">
@@ -48,12 +45,22 @@
                                         <td class="py-2 px-4 border-b">
                                             {{ $raffle->tickets()->where('status', 'paid')->count() }} / {{ $raffle->total_tickets }}
                                         </td>
-                                        <td class="py-2 px-4 border-b text-sm">
+                                        <td class="py-2 px-4 border-b text-sm whitespace-nowrap">
                                             <button wire:click="edit({{ $raffle->id }})" class="font-medium text-blue-600 hover:text-blue-800">Editar</button>
 
                                             @if ($raffle->status === 'pending')
                                                 <span class="text-gray-300 mx-1">|</span>
                                                 <button wire:click="activateRaffle({{ $raffle->id }})" class="font-medium text-green-600 hover:text-green-800">Ativar</button>
+                                            @endif
+
+                                            @if ($raffle->status !== 'finished' && $raffle->status !== 'cancelled')
+                                                <span class="text-gray-300 mx-1">|</span>
+                                                <button
+                                                    wire:click="cancelRaffle({{ $raffle->id }})"
+                                                    wire:confirm="Tem certeza que deseja cancelar esta rifa? Esta ação não pode ser desfeita."
+                                                    class="font-medium text-red-600 hover:text-red-800">
+                                                    Cancelar
+                                                </button>
                                             @endif
                                         </td>
                                     </tr>
@@ -81,28 +88,21 @@
 
                 <form wire:submit.prevent="save">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Título -->
                         <div class="col-span-2">
                             <label for="title" class="block text-sm font-medium text-gray-700">Título</label>
                             <input type="text" wire:model.defer="title" id="title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             @error('title') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
-
-                        <!-- Descrição -->
                         <div class="col-span-2">
                             <label for="description" class="block text-sm font-medium text-gray-700">Descrição</label>
                             <textarea wire:model.defer="description" id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                             @error('description') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
-
-                        <!-- Preço da Cota -->
                         <div>
                             <label for="ticket_price" class="block text-sm font-medium text-gray-700">Preço por Cota (R$)</label>
                             <input type="number" step="0.01" wire:model.defer="ticket_price" id="ticket_price" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             @error('ticket_price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
-
-                        <!-- Quantidade de Cotas -->
                         <div>
                             <label for="total_tickets" class="block text-sm font-medium text-gray-700">Quantidade de Cotas</label>
                             <input type="number" wire:model.defer="total_tickets" id="total_tickets" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" @if($editingRaffle) disabled @endif>
@@ -112,8 +112,6 @@
                             @error('total_tickets') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
                     </div>
-
-                    <!-- Botões da Modal -->
                     <div class="mt-6 flex justify-end space-x-4">
                         <button type="button" wire:click="closeModal" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                             Cancelar
