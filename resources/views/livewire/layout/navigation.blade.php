@@ -28,20 +28,23 @@ new class extends Component
                     </a>
                 </div>
 
-<!-- Navigation Links -->
-<div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-        {{ __('Dashboard') }}
-    </x-nav-link>
-
-    <!-- ADICIONE ESTE BLOCO NOVO -->
-    @if (auth()->user() && auth()->user()->is_admin)
-        <x-nav-link :href="route('admin.raffles.index')" :active="request()->routeIs('admin.*')">
-            {{ __('Gerenciar Rifas') }}
+    <!-- Navigation Links -->
+    <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+            {{ __('Dashboard') }}
         </x-nav-link>
-    @endif
-    <!-- FIM DO BLOCO NOVO -->
-</div>
+
+        <!-- Link para a Vitrine de Rifas -->
+        <x-nav-link :href="route('raffles.showcase')" :active="request()->routeIs('raffles.showcase')">
+            {{ __('Rifas') }}
+        </x-nav-link>
+
+        @if (auth()->user() && auth()->user()->is_admin)
+            <x-nav-link :href="route('admin.raffles.index')" :active="request()->routeIs('admin.*')">
+                {{ __('Gerenciar Rifas') }}
+            </x-nav-link>
+        @endif
+    </div>
 
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
