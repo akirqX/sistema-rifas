@@ -12,25 +12,105 @@ class Index extends Component
 {
     use WithPagination;
 
-    // Propriedades para o formulário de criação
-    public bool $showCreateModal = false;
+    // Propriedades para o formulário
+    public bool $showModal = false;
+    public ?Raffle $editingRaffle; // Guarda a rifa que estamos editando
+
     public string $title = '';
     public string $description = '';
-    public float $ticket_price = 0;
-    public int $total_tickets = 0;
+    public ?float $ticket_price = null;
+    public ?int $total_tickets = null;
 
-    // Regras de validação
-    protected function rules()
+    protected function rules(): array
     {
-        return [
+        // Regras base que se aplicam sempre
+        $rules = [
             'title' => 'required|string|min:5',
             'description' => 'required|string',
             'ticket_price' => 'required|numeric|min:0.1',
-            'total_tickets' => 'required|integer|min:10|max:10000', // Limite máximo para performance
         ];
+
+        // Adiciona a regra para 'total_tickets' APENAS se estivermos criando uma nova rifa
+        if (!$this->editingRaffle) {
+            $rules['total_tickets'] = 'required|integer|min:10|max:10000';
+        }
+
+        return $rules;
     }
 
-    // Adicione este método dentro da classe Index
+    // Configura e abre a modal para CRIAR uma nova rifa
+    public function create(): void
+    {
+        $this->resetValidation();
+        $this->reset(); // Reseta todas as propriedades
+        $this->showModal = true;
+    }
+
+    // Configura e abre a modal para EDITAR uma rifa existente
+    public function edit(Raffle $raffle): void
+    {
+        $this->resetValidation();
+        $this->editingRaffle = $raffle;
+
+        // Preenche o formulário com os dados da rifa
+        $this->title = $raffle->title;
+        $this->description = $raffle->description;
+        $this->ticket_price = $raffle->ticket_price;
+        $this->total_tickets = $raffle->total_tickets;
+
+        $this->showModal = true;
+    }
+
+    // Fecha a modal
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+    }
+
+    // Salva a rifa (cria uma nova ou atualiza uma existente)
+    public function save(): void
+    {
+        $this->validate();
+
+        try {
+            DB::transaction(function () {
+                if ($this->editingRaffle) {
+                    // --- LÓGICA DE ATUALIZAÇÃO ---
+                    $this->editingRaffle->update([
+                        'title' => $this->title,
+                        'description' => $this->description,
+                        'ticket_price' => $this->ticket_price,
+                    ]);
+                    session()->flash('success', 'Rifa atualizada com sucesso!');
+                } else {
+                    // --- LÓGICA DE CRIAÇÃO (já existia) ---
+                    $raffle = Raffle::create([
+                        'title' => $this->title,
+                        'description' => $this->description,
+                        'ticket_price' => $this->ticket_price,
+                        'total_tickets' => $this->total_tickets,
+                        'status' => 'pending',
+                    ]);
+
+                    $tickets = [];
+                    for ($i = 1; $i <= $this->total_tickets; $i++) {
+                        $tickets[] = ['raffle_id' => $raffle->id, 'number' => $i, 'status' => 'available', 'created_at' => now(), 'updated_at' => now()];
+                    }
+                    foreach (array_chunk($tickets, 1000) as $chunk) {
+                        Ticket::insert($chunk);
+                    }
+                    session()->flash('success', 'Rifa criada com sucesso!');
+                }
+            });
+
+            $this->closeModal();
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Ocorreu um erro: ' . $e->getMessage());
+        }
+    }
+
+    // (O método activateRaffle continua o mesmo)
     public function activateRaffle(Raffle $raffle): void
     {
         if ($raffle->status === 'pending') {
@@ -39,68 +119,9 @@ class Index extends Component
         }
     }
 
-    // Abre a modal e reseta os campos
-    public function openCreateModal(): void
-    {
-        $this->resetValidation();
-        $this->reset('title', 'description', 'ticket_price', 'total_tickets');
-        $this->showCreateModal = true;
-    }
-
-    // Fecha a modal
-    public function closeCreateModal(): void
-    {
-        $this->showCreateModal = false;
-    }
-
-    // Método para salvar a nova rifa
-    public function save(): void
-    {
-        $this->validate();
-
-        try {
-            DB::transaction(function () {
-                // 1. Cria a Rifa
-                $raffle = Raffle::create([
-                    'title' => $this->title,
-                    'description' => $this->description,
-                    'ticket_price' => $this->ticket_price,
-                    'total_tickets' => $this->total_tickets,
-                    'status' => 'pending', // Começa como pendente
-                ]);
-
-                // 2. Cria as cotas (tickets) para essa rifa
-                $tickets = [];
-                for ($i = 1; $i <= $this->total_tickets; $i++) {
-                    $tickets[] = [
-                        'raffle_id' => $raffle->id,
-                        'number' => $i,
-                        'status' => 'available',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                }
-
-                // Insere em lotes para melhor performance
-                foreach (array_chunk($tickets, 1000) as $chunk) {
-                    Ticket::insert($chunk);
-                }
-            });
-
-            session()->flash('success', 'Rifa criada com sucesso!');
-            $this->closeCreateModal();
-
-        } catch (\Exception $e) {
-            session()->flash('error', 'Ocorreu um erro ao criar a rifa: ' . $e->getMessage());
-        }
-    }
-
     public function render()
     {
         $raffles = Raffle::latest()->paginate(10);
-
-        return view('livewire.admin.raffles.index', [
-            'raffles' => $raffles,
-        ])->layout('layouts.app');
+        return view('livewire.admin.raffles.index', ['raffles' => $raffles])->layout('layouts.app');
     }
 }
