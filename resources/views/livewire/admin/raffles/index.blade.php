@@ -88,21 +88,42 @@
 
                 <form wire:submit.prevent="save">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Título -->
                         <div class="col-span-2">
                             <label for="title" class="block text-sm font-medium text-gray-700">Título</label>
                             <input type="text" wire:model.defer="title" id="title" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             @error('title') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
+
+                        <!-- Descrição -->
                         <div class="col-span-2">
                             <label for="description" class="block text-sm font-medium text-gray-700">Descrição</label>
                             <textarea wire:model.defer="description" id="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                             @error('description') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
+
+                        <!-- Upload de Imagem -->
+                        <div class="col-span-2">
+                            <label for="photo" class="block text-sm font-medium text-gray-700">Imagem da Rifa</label>
+                            <input type="file" wire:model="photo" id="photo" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100">
+                            <!-- Preview da Imagem -->
+                            <div wire:loading wire:target="photo" class="mt-2 text-sm text-gray-500">Carregando preview...</div>
+                            @if ($photo)
+                                <img src="{{ $photo->temporaryUrl() }}" class="mt-4 h-32 w-auto rounded">
+                            @elseif($editingRaffle && $editingRaffle->getFirstMedia('raffles'))
+                                <img src="{{ $editingRaffle->getFirstMediaUrl('raffles') }}" class="mt-4 h-32 w-auto rounded" alt="Imagem atual">
+                            @endif
+                            @error('photo') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        <!-- Preço da Cota -->
                         <div>
                             <label for="ticket_price" class="block text-sm font-medium text-gray-700">Preço por Cota (R$)</label>
                             <input type="number" step="0.01" wire:model.defer="ticket_price" id="ticket_price" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                             @error('ticket_price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
+
+                        <!-- Quantidade de Cotas -->
                         <div>
                             <label for="total_tickets" class="block text-sm font-medium text-gray-700">Quantidade de Cotas</label>
                             <input type="number" wire:model.defer="total_tickets" id="total_tickets" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" @if($editingRaffle) disabled @endif>
@@ -112,6 +133,8 @@
                             @error('total_tickets') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
                     </div>
+
+                    <!-- Botões da Modal -->
                     <div class="mt-6 flex justify-end space-x-4">
                         <button type="button" wire:click="closeModal" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                             Cancelar

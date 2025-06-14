@@ -7,10 +7,11 @@ use App\Models\Ticket;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 
 class Index extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     // Propriedades para o formulário
     public bool $showModal = false;
@@ -20,6 +21,7 @@ class Index extends Component
     public string $description = '';
     public ?float $ticket_price = null;
     public ?int $total_tickets = null;
+    public $photo = null; // Para o upload da imagem
 
     protected function rules(): array
     {
@@ -28,6 +30,7 @@ class Index extends Component
             'title' => 'required|string|min:5',
             'description' => 'required|string',
             'ticket_price' => 'required|numeric|min:0.1',
+            'photo' => 'nullable|image|max:2048', // opcional, imagem, máx 2MB
         ];
 
         // Adiciona a regra para 'total_tickets' APENAS se estivermos criando uma nova rifa
@@ -43,6 +46,7 @@ class Index extends Component
     {
         $this->resetValidation();
         $this->reset();
+        $this->photo = null;
         $this->editingRaffle = null;
         $this->showModal = true;
     }
@@ -57,6 +61,7 @@ class Index extends Component
         $this->description = $raffle->description;
         $this->ticket_price = $raffle->ticket_price;
         $this->total_tickets = $raffle->total_tickets;
+        $this->photo = null;
 
         $this->showModal = true;
     }
@@ -74,15 +79,18 @@ class Index extends Component
 
         try {
             DB::transaction(function () {
+                $raffleToProcess = null;
+
                 if ($this->editingRaffle) {
                     $this->editingRaffle->update([
                         'title' => $this->title,
                         'description' => $this->description,
                         'ticket_price' => $this->ticket_price,
                     ]);
+                    $raffleToProcess = $this->editingRaffle;
                     session()->flash('success', 'Rifa atualizada com sucesso!');
                 } else {
-                    $raffle = Raffle::create([
+                    $raffleToProcess = Raffle::create([
                         'title' => $this->title,
                         'description' => $this->description,
                         'ticket_price' => $this->ticket_price,
@@ -92,12 +100,18 @@ class Index extends Component
 
                     $tickets = [];
                     for ($i = 1; $i <= $this->total_tickets; $i++) {
-                        $tickets[] = ['raffle_id' => $raffle->id, 'number' => $i, 'status' => 'available', 'created_at' => now(), 'updated_at' => now()];
+                        $tickets[] = ['raffle_id' => $raffleToProcess->id, 'number' => $i, 'status' => 'available', 'created_at' => now(), 'updated_at' => now()];
                     }
                     foreach (array_chunk($tickets, 1000) as $chunk) {
                         Ticket::insert($chunk);
                     }
                     session()->flash('success', 'Rifa criada com sucesso!');
+                }
+
+                // Lógica de upload da imagem, funciona para criar e editar
+                if ($this->photo) {
+                    $raffleToProcess->addMedia($this->photo->getRealPath())
+                        ->toMediaCollection('raffles');
                 }
             });
 
