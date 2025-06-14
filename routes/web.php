@@ -39,6 +39,8 @@ Route::middleware('auth')->group(function () {
     })->name('payment.page');
 });
 
+Route::get('/meus-pedidos', \App\Livewire\User\MyOrders::class)->name('my.orders');
+
 Route::get('/admin/rifas', \App\Livewire\Admin\Raffles\Index::class)
     ->middleware(['auth', 'admin']) // Adicione 'admin' aqui
     ->name('admin.raffles.index');
