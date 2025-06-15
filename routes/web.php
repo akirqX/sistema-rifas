@@ -19,6 +19,8 @@ Route::middleware('auth')->group(function () {
     // --- Nossas Rotas do Sistema de Rifas ---
     Route::get('/rifa/{raffle}', RafflePage::class)->name('raffle.show');
 
+    Route::get('/admin/rifa/{raffle}/cotas', \App\Livewire\Admin\Raffles\ManageTickets::class)->name('admin.raffles.tickets');
+
     Route::get('/rifas', \App\Livewire\Raffles\Showcase::class)->name('raffles.showcase');
 
     // Rota para o painel de administração de rifas

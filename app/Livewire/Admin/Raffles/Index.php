@@ -13,7 +13,6 @@ class Index extends Component
 {
     use WithPagination, WithFileUploads;
 
-    // Propriedades para o formulário
     public bool $showModal = false;
     public ?Raffle $editingRaffle = null;
 
@@ -21,82 +20,65 @@ class Index extends Component
     public string $description = '';
     public ?float $ticket_price = null;
     public ?int $total_tickets = null;
-    public $photo = null; // Para o upload da imagem
+    public $photo = null;
 
     protected function rules(): array
     {
-        // Regras base que se aplicam sempre
         $rules = [
             'title' => 'required|string|min:5',
             'description' => 'required|string',
             'ticket_price' => 'required|numeric|min:0.1',
-            'photo' => 'nullable|image|max:2048', // opcional, imagem, máx 2MB
+            'photo' => 'nullable|image|max:2048',
         ];
-
-        // Adiciona a regra para 'total_tickets' APENAS se estivermos criando uma nova rifa
         if (!$this->editingRaffle) {
             $rules['total_tickets'] = 'required|integer|min:10|max:10000';
         }
-
         return $rules;
     }
 
-    // Configura e abre a modal para CRIAR uma nova rifa
     public function create(): void
     {
         $this->resetValidation();
         $this->reset();
-        $this->photo = null;
         $this->editingRaffle = null;
         $this->showModal = true;
     }
 
-    // Configura e abre a modal para EDITAR uma rifa existente
     public function edit(Raffle $raffle): void
     {
         $this->resetValidation();
         $this->editingRaffle = $raffle;
-
         $this->title = $raffle->title;
         $this->description = $raffle->description;
         $this->ticket_price = $raffle->ticket_price;
         $this->total_tickets = $raffle->total_tickets;
         $this->photo = null;
-
         $this->showModal = true;
     }
 
-    // Fecha a modal
     public function closeModal(): void
     {
         $this->showModal = false;
     }
 
-    // Salva a rifa (cria uma nova ou atualiza uma existente)
     public function save(): void
     {
         $this->validate();
-
         try {
             DB::transaction(function () {
-                $raffleToProcess = null;
-
+                $data = [
+                    'title' => $this->title,
+                    'description' => $this->description,
+                    'ticket_price' => $this->ticket_price,
+                ];
                 if ($this->editingRaffle) {
-                    $this->editingRaffle->update([
-                        'title' => $this->title,
-                        'description' => $this->description,
-                        'ticket_price' => $this->ticket_price,
-                    ]);
+                    $this->editingRaffle->update($data);
                     $raffleToProcess = $this->editingRaffle;
                     session()->flash('success', 'Rifa atualizada com sucesso!');
                 } else {
-                    $raffleToProcess = Raffle::create([
-                        'title' => $this->title,
-                        'description' => $this->description,
-                        'ticket_price' => $this->ticket_price,
-                        'total_tickets' => $this->total_tickets,
-                        'status' => 'pending',
-                    ]);
+                    $data['total_tickets'] = $this->total_tickets;
+                    $data['status'] = 'pending';
+                    $raffleToProcess = Raffle::create($data);
 
                     $tickets = [];
                     for ($i = 1; $i <= $this->total_tickets; $i++) {
@@ -107,16 +89,11 @@ class Index extends Component
                     }
                     session()->flash('success', 'Rifa criada com sucesso!');
                 }
-
-                // Lógica de upload da imagem, funciona para criar e editar
                 if ($this->photo) {
-                    $raffleToProcess->addMedia($this->photo->getRealPath())
-                        ->toMediaCollection('raffles');
+                    $raffleToProcess->addMedia($this->photo->getRealPath())->toMediaCollection('raffles');
                 }
             });
-
             $this->closeModal();
-
         } catch (\Exception $e) {
             session()->flash('error', 'Ocorreu um erro: ' . $e->getMessage());
         }
@@ -136,14 +113,39 @@ class Index extends Component
             session()->flash('error', 'Não é possível cancelar uma rifa que já possui cotas vendidas.');
             return;
         }
-
         $raffle->update(['status' => 'cancelled']);
         session()->flash('success', 'Rifa cancelada com sucesso.');
     }
 
+    public function performDraw(Raffle $raffle): void
+    {
+        $paidTickets = $raffle->tickets()->where('status', 'paid')->get();
+
+        if ($paidTickets->isEmpty()) {
+            session()->flash('error', 'Não é possível sortear uma rifa sem nenhuma cota paga.');
+            return;
+        }
+
+        // Sorteia uma cota entre as pagas
+        $winningTicket = $paidTickets->random();
+
+        // Atualiza a rifa com os dados do sorteio
+        $raffle->update([
+            'status' => 'finished',
+            'winner_ticket_id' => $winningTicket->id,
+            'drawn_at' => now(), // Registra o momento exato do sorteio
+        ]);
+
+        session()->flash('success', "Sorteio realizado! A cota vencedora é #{$winningTicket->number}.");
+    }
+
     public function render()
     {
-        $raffles = Raffle::latest()->paginate(10);
-        return view('livewire.admin.raffles.index', ['raffles' => $raffles])->layout('layouts.app');
+        // Usamos 'with' para carregar os relacionamentos e evitar múltiplas queries (N+1 problem)
+        $raffles = Raffle::with('winner.user')->latest()->paginate(10);
+
+        return view('livewire.admin.raffles.index', [
+            'raffles' => $raffles,
+        ])->layout('layouts.app');
     }
 }

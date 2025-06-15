@@ -11,7 +11,11 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('raffles', function (Blueprint $table) {
-            $table->dropColumn('draw_date');
+            // Se a coluna draw_date existir, ela será removida
+            if (Schema::hasColumn('raffles', 'draw_date')) {
+                $table->dropColumn('draw_date');
+            }
+            // Adiciona a nova coluna para registrar o momento do sorteio
             $table->timestamp('drawn_at')->nullable()->after('status');
         });
     }
@@ -22,7 +26,9 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('raffles', function (Blueprint $table) {
-            //
+            // Lógica para reverter, caso seja necessário
+            $table->dropColumn('drawn_at');
+            $table->timestamp('draw_date')->nullable();
         });
     }
 };

@@ -13,6 +13,15 @@ class Raffle extends Model implements HasMedia
 
     protected $guarded = [];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'drawn_at' => 'datetime',
+    ];
+
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
@@ -22,4 +31,23 @@ class Raffle extends Model implements HasMedia
     {
         return $this->hasMany(Order::class);
     }
+
+    // Adicione este método dentro da classe Raffle
+
+    public function registerMediaConversions(\Spatie\MediaLibrary\MediaCollections\Models\Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->width(150)
+            ->height(150)
+            ->sharpen(10);
+    }
+
+    /**
+     * Get the winning ticket associated with the Raffle.
+     */
+    public function winner()
+    {
+        return $this->belongsTo(Ticket::class, 'winner_ticket_id');
+    }
 }
+
