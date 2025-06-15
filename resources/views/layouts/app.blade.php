@@ -17,23 +17,33 @@
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <livewire:layout.navigation />
+            <div class="flex">
+                <!-- Sidebar de Navegação (visível apenas para usuários logados) -->
+                @auth
+                    @include('layouts.partials.sidebar')
+                @endauth
 
-            <!-- Page Heading -->
-            @if (isset($header))
-                <header class="bg-white dark:bg-gray-800 shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endif
+                <!-- Área de Conteúdo Principal -->
+                <div class="flex-1 flex flex-col min-h-screen">
+                    <!-- Barra de Navegação Superior -->
+                    <livewire:layout.navigation />
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
+                    <!-- Cabeçalho da Página (se definido) -->
+                    @if (isset($header))
+                        <header class="bg-white dark:bg-gray-800 shadow">
+                            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                                {{ $header }}
+                            </div>
+                        </header>
+                    @endif
+
+                    <!-- Conteúdo da Página -->
+                    <main class="flex-1">
+                        {{ $slot }}
+                    </main>
+                </div>
+            </div>
         </div>
-
         @stack('scripts')
     </body>
 </html>

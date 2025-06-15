@@ -1,55 +1,37 @@
 <?php
 
-use App\Http\Controllers\PaymentWebhookController;
-use App\Livewire\RafflePage;
-use App\Models\Order;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Raffles\Showcase as RaffleShowcase;
+use App\Livewire\RafflePage;
+use App\Livewire\CheckoutPage;
+use App\Livewire\User\MyOrders;
+use App\Livewire\User\MyTickets;
+use App\Livewire\Admin\Raffles\Index as AdminRafflesIndex;
+use App\Livewire\Admin\Raffles\ManageTickets as AdminManageTickets;
+use App\Http\Controllers\PaymentWebhookController;
 
-// As rotas de autenticação e perfil já são carregadas pelo Breeze
+// ROTAS PÚBLICAS
+Route::get('/', RaffleShowcase::class)->name('home');
+Route::get('/rifas', RaffleShowcase::class)->name('raffles.showcase');
+Route::get('/rifa/{raffle}', RafflePage::class)->name('raffle.show');
+Route::get('/checkout/{raffle}', CheckoutPage::class)->name('checkout');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-Route::view('profile', 'profile')
-    ->middleware(['auth'])
-    ->name('profile');
-
+// ROTAS DE USUÁRIO LOGADO
 Route::middleware('auth')->group(function () {
-    // --- Nossas Rotas do Sistema de Rifas ---
-    Route::get('/rifa/{raffle}', RafflePage::class)->name('raffle.show');
-
-    Route::get('/admin/rifa/{raffle}/cotas', \App\Livewire\Admin\Raffles\ManageTickets::class)->name('admin.raffles.tickets');
-
-    Route::get('/rifas', \App\Livewire\Raffles\Showcase::class)->name('raffles.showcase');
-
-    Route::get('/minhas-cotas', \App\Livewire\User\MyTickets::class)->name('my.tickets');
-
-    // Rota para o painel de administração de rifas
-    Route::get('/admin/rifas', \App\Livewire\Admin\Raffles\Index::class)->name('admin.raffles.index');
-
-    Route::get('/pagamento/{order}', function (Order $order) {
-        if ($order->user_id !== auth()->id()) {
-            abort(403);
-        }
-        if ($order->status !== 'pending') {
-            return "Este pedido não está mais pendente. Status: {$order->status}";
-        }
-        return "<h1>Pagar Pedido #{$order->id}</h1>
-                <p>Total: R$ {$order->total_amount}</p>
-                <p>Pague antes de: {$order->expires_at->format('d/m/Y H:i:s')} ({$order->expires_at->diffForHumans()})</p>
-                <hr><h3>SIMULAÇÃO DE WEBHOOK</h3>
-                <p>Para testar a baixa, envie um POST para <b>/webhook</b> com o JSON: <pre>{ \"order_id\": {$order->id}, \"status\": \"approved\" }</pre></p>";
-    })->name('payment.page');
+    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::view('profile', 'profile')->name('profile');
+    Route::get('/meus-pedidos', MyOrders::class)->name('my.orders');
+    Route::get('/minhas-cotas', MyTickets::class)->name('my.tickets');
 });
 
-Route::get('/meus-pedidos', \App\Livewire\User\MyOrders::class)->name('my.orders');
+// ROTAS DE ADMIN
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/rifas', AdminRafflesIndex::class)->name('raffles.index');
+    Route::get('/rifa/{raffle}/cotas', AdminManageTickets::class)->name('raffles.tickets');
+});
 
-Route::get('/admin/rifas', \App\Livewire\Admin\Raffles\Index::class)
-    ->middleware(['auth', 'admin']) // Adicione 'admin' aqui
-    ->name('admin.raffles.index');
-
-// Webhook não precisa de autenticação
+// ROTAS DE SERVIÇO
 Route::post('/webhook', [PaymentWebhookController::class, 'handle'])->name('payment.webhook');
 
+// 👇👇👇 A LINHA QUE FALTAVA 👇👇👇
 require __DIR__ . '/auth.php';
