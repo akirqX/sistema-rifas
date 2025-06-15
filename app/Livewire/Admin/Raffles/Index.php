@@ -20,8 +20,8 @@ class Index extends Component
 
     public string $title = '';
     public string $description = '';
-    public ?float $ticket_price = null;
-    public ?int $total_tickets = null;
+    public ?float $price = null; // CORREÇÃO: Renomeado de ticket_price para price
+    public ?int $total_numbers = null; // CORREÇÃO: Renomeado de total_tickets para total_numbers
     public $photo = null;
 
     // Propriedades para as estatísticas
@@ -33,14 +33,15 @@ class Index extends Component
 
     protected function rules(): array
     {
+        // CORREÇÃO: As regras agora apontam para os nomes corretos das propriedades
         $rules = [
             'title' => 'required|string|min:5',
             'description' => 'required|string',
-            'ticket_price' => 'required|numeric|min:0.1',
+            'price' => 'required|numeric|min:0.1',
             'photo' => 'nullable|image|max:2048',
         ];
         if (!$this->editingRaffle) {
-            $rules['total_tickets'] = 'required|integer|min:10|max:10000';
+            $rules['total_numbers'] = 'required|integer|min:10|max:10000';
         }
         return $rules;
     }
@@ -62,7 +63,7 @@ class Index extends Component
     public function prepareSalesChart()
     {
         $sales = Order::where('status', 'paid')
-            ->where('created_at', '>=', now()->subDays(6)) // Inclui o dia de hoje
+            ->where('created_at', '>=', now()->subDays(6))
             ->select(
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('SUM(total_amount) as total')
@@ -104,8 +105,8 @@ class Index extends Component
         $this->editingRaffle = $raffle;
         $this->title = $raffle->title;
         $this->description = $raffle->description;
-        $this->ticket_price = $raffle->ticket_price;
-        $this->total_tickets = $raffle->total_tickets;
+        $this->price = $raffle->price; // CORREÇÃO: Buscando da coluna 'price'
+        $this->total_numbers = $raffle->total_numbers; // CORREÇÃO: Buscando da coluna 'total_numbers'
         $this->photo = null;
         $this->showModal = true;
     }
@@ -120,22 +121,25 @@ class Index extends Component
         $this->validate();
         try {
             DB::transaction(function () {
+                // CORREÇÃO: O array de dados agora usa os nomes exatos das colunas do banco
                 $data = [
                     'title' => $this->title,
                     'description' => $this->description,
-                    'ticket_price' => $this->ticket_price,
+                    'price' => $this->price,
                 ];
                 if ($this->editingRaffle) {
                     $this->editingRaffle->update($data);
                     $raffleToProcess = $this->editingRaffle;
                     session()->flash('success', 'Rifa atualizada com sucesso!');
                 } else {
-                    $data['total_tickets'] = $this->total_tickets;
+                    $data['total_numbers'] = $this->total_numbers; // CORREÇÃO FINAL AQUI
                     $data['status'] = 'pending';
+                    $data['user_id'] = auth()->id();
+
                     $raffleToProcess = Raffle::create($data);
 
                     $tickets = [];
-                    for ($i = 1; $i <= $this->total_tickets; $i++) {
+                    for ($i = 1; $i <= $this->total_numbers; $i++) {
                         $tickets[] = ['raffle_id' => $raffleToProcess->id, 'number' => $i, 'status' => 'available', 'created_at' => now(), 'updated_at' => now()];
                     }
                     foreach (array_chunk($tickets, 1000) as $chunk) {
@@ -144,6 +148,7 @@ class Index extends Component
                     session()->flash('success', 'Rifa criada com sucesso!');
                 }
                 if ($this->photo) {
+                    $raffleToProcess->clearMediaCollection('raffles');
                     $raffleToProcess->addMedia($this->photo->getRealPath())->toMediaCollection('raffles');
                 }
             });
@@ -151,7 +156,7 @@ class Index extends Component
             $this->calculateStats();
             $this->prepareSalesChart();
         } catch (\Exception $e) {
-            session()->flash('error', 'Ocorreu um erro: ' . $e->getMessage());
+            session()->flash('error', 'Ocorreu um erro ao salvar: ' . $e->getMessage());
         }
     }
 

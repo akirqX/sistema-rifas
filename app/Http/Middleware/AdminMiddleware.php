@@ -5,7 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Auth; // Adicione esta importação no topo
 
 class AdminMiddleware
 {
@@ -16,9 +15,13 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::check() && Auth::user()->is_admin) {
+        // Verifica se o usuário está logado E se a sua coluna 'is_admin' é true (1).
+        if (auth()->check() && auth()->user()->is_admin) {
+            // Se for admin, permite que a requisição continue para a rota de admin.
             return $next($request);
         }
-        abort(403, 'Acesso não autorizado.'); // Retorna um erro 403 se não for admin
+
+        // Se não for admin, redireciona para o dashboard com uma mensagem de erro.
+        return redirect()->route('dashboard')->with('error', 'Acesso negado. Você não tem permissão de administrador.');
     }
 }

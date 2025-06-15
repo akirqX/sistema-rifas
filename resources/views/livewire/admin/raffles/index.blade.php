@@ -1,4 +1,17 @@
 <div>
+    {{-- Bloco para exibir mensagens de sucesso ou erro --}}
+    @if (session('success'))
+        <div class="mb-4 rounded-md bg-green-100 p-4 text-sm text-green-700">
+            {{ session('success') }}
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="mb-4 rounded-md bg-red-100 p-4 text-sm text-red-700">
+            {{ session('error') }}
+        </div>
+    @endif
+    {{-- Fim do bloco de mensagens --}}
+
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
             Dashboard do Administrador
@@ -43,7 +56,6 @@
                      <button wire:click="create" class="w-full text-left mb-4 bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md">
                         + Nova Rifa
                     </button>
-                    {{-- Aqui podemos adicionar links para outras áreas do admin no futuro --}}
                 </div>
             </div>
 
@@ -73,7 +85,8 @@
                                                 </div>
                                                 <div class="ml-4">
                                                     <div class="text-sm font-medium text-gray-900">{{ $raffle->title }}</div>
-                                                    <div class="text-xs text-gray-500">ID: {{ $raffle->id }} | Preço: R$ {{ number_format($raffle->ticket_price, 2, ',', '.') }}</div>
+                                                    {{-- CORREÇÃO NA TABELA: Usando $raffle->price --}}
+                                                    <div class="text-xs text-gray-500">ID: {{ $raffle->id }} | Preço: R$ {{ number_format($raffle->price, 2, ',', '.') }}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -87,7 +100,8 @@
                                             </span>
                                         </td>
                                         <td class="py-4 px-6 whitespace-nowrap text-center text-sm text-gray-500">
-                                            {{ $raffle->tickets()->where('status', 'paid')->count() }} / {{ $raffle->total_tickets }}
+                                            {{-- CORREÇÃO NA TABELA: Usando $raffle->total_numbers --}}
+                                            {{ $raffle->tickets()->where('status', 'paid')->count() }} / {{ $raffle->total_numbers }}
                                         </td>
                                         <td class="py-4 px-6 whitespace-nowrap text-sm text-gray-500">
                                             @if($raffle->winner)
@@ -159,19 +173,21 @@
                             @error('photo') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
+                        {{-- CORREÇÃO FINAL NO FORMULÁRIO --}}
                         <div>
-                            <label for="ticket_price" class="block text-sm font-medium text-gray-700">Preço por Cota (R$)</label>
-                            <input type="number" step="0.01" wire:model.defer="ticket_price" id="ticket_price" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                            @error('ticket_price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            <label for="price" class="block text-sm font-medium text-gray-700">Preço por Cota (R$)</label>
+                            <input type="number" step="0.01" wire:model.defer="price" id="price" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            @error('price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
 
+                        {{-- CORREÇÃO FINAL NO FORMULÁRIO --}}
                         <div>
-                            <label for="total_tickets" class="block text-sm font-medium text-gray-700">Quantidade de Cotas</label>
-                            <input type="number" wire:model.defer="total_tickets" id="total_tickets" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" @if($editingRaffle) disabled @endif>
+                            <label for="total_numbers" class="block text-sm font-medium text-gray-700">Quantidade de Cotas</label>
+                            <input type="number" wire:model.defer="total_numbers" id="total_numbers" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" @if($editingRaffle) disabled @endif>
                             @if($editingRaffle)
                                 <span class="text-xs text-gray-500">A quantidade de cotas não pode ser alterada.</span>
                             @endif
-                            @error('total_tickets') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            @error('total_numbers') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
