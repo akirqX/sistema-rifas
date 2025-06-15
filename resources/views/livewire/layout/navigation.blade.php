@@ -66,9 +66,13 @@ new class extends Component
                 {{ __('Profile') }}
             </x-dropdown-link>
 
-            <!-- 👇👇👇 ADICIONE O NOVO LINK AQUI 👇👇👇 -->
+            <!-- Orders -->
             <x-dropdown-link :href="route('my.orders')" wire:navigate>
                 {{ __('Meus Pedidos') }}
+            </x-dropdown-link>
+
+                <x-dropdown-link :href="route('my.tickets')" wire:navigate>
+        {{ __('Minhas Cotas') }}
             </x-dropdown-link>
 
             <!-- Authentication -->

@@ -23,6 +23,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/rifas', \App\Livewire\Raffles\Showcase::class)->name('raffles.showcase');
 
+    Route::get('/minhas-cotas', \App\Livewire\User\MyTickets::class)->name('my.tickets');
+
     // Rota para o painel de administração de rifas
     Route::get('/admin/rifas', \App\Livewire\Admin\Raffles\Index::class)->name('admin.raffles.index');
 

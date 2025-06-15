@@ -1,24 +1,57 @@
 <div>
-    <div class="py-12">
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            Dashboard do Administrador
+        </h2>
+    </x-slot>
+
+    <div class="py-12" wire:init="prepareSalesChart">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            <!-- Botão e Mensagens de Feedback -->
-            <div class="flex justify-end mb-4">
-                <button wire:click="create" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md">
-                    + Nova Rifa
-                </button>
+            <!-- WIDGETS DE ESTATÍSTICAS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="text-sm font-medium text-gray-500">Total Arrecadado</h4>
+                    <p class="text-3xl font-bold mt-2">R$ {{ number_format($totalRevenue, 2, ',', '.') }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="text-sm font-medium text-gray-500">Pedidos Totais</h4>
+                    <p class="text-3xl font-bold mt-2">{{ $totalOrders }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="text-sm font-medium text-gray-500">Cotas Vendidas</h4>
+                    <p class="text-3xl font-bold mt-2">{{ $totalTicketsSold }}</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h4 class="text-sm font-medium text-gray-500">Rifas Ativas</h4>
+                    <p class="text-3xl font-bold mt-2">{{ $activeRafflesCount }}</p>
+                </div>
             </div>
 
-            @if (session()->has('success'))
-                <div class="bg-green-200 text-green-800 p-4 rounded-lg mb-4 shadow-sm">{{ session('success') }}</div>
-            @endif
-            @if (session()->has('error'))
-                <div class="bg-red-200 text-red-800 p-4 rounded-lg mb-4 shadow-sm">{{ session('error') }}</div>
-            @endif
+            <!-- GRÁFICO E AÇÕES RÁPIDAS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- Gráfico de Vendas -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md" wire:ignore>
+                    <h4 class="font-bold mb-4">Vendas nos últimos 7 dias</h4>
+                    <div class="h-64">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                <!-- Lista de Ações Rápidas -->
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                     <h4 class="font-bold mb-4">Ações Rápidas</h4>
+                     <button wire:click="create" class="w-full text-left mb-4 bg-green-500 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow-md">
+                        + Nova Rifa
+                    </button>
+                    {{-- Aqui podemos adicionar links para outras áreas do admin no futuro --}}
+                </div>
+            </div>
 
-            <!-- Card Branco com a Nova Tabela -->
+            <!-- TABELA DE GERENCIAMENTO -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
+                    <h3 class="text-2xl font-bold mb-4">Gerenciamento de Rifas</h3>
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full bg-white">
                             <thead class="bg-gray-50">
@@ -65,19 +98,14 @@
                                             @endif
                                         </td>
                                         <td class="py-4 px-6 whitespace-nowrap text-right text-sm font-medium">
-                                            {{-- 👇👇👇 NOVO LINK ADICIONADO AQUI 👇👇👇 --}}
                                             <a href="{{ route('admin.raffles.tickets', $raffle) }}" class="text-gray-600 hover:text-gray-900">Cotas</a>
-
                                             <button wire:click="edit({{ $raffle->id }})" class="ml-4 text-indigo-600 hover:text-indigo-900">Editar</button>
-
                                             @if ($raffle->status === 'pending')
                                                 <button wire:click="activateRaffle({{ $raffle->id }})" class="ml-4 text-green-600 hover:text-green-900">Ativar</button>
                                             @endif
-
                                             @if ($raffle->status === 'active')
                                                 <button wire:click="performDraw({{ $raffle->id }})" wire:confirm="Tem certeza que deseja realizar o sorteio AGORA? Esta ação é irreversível." class="ml-4 text-purple-600 hover:text-purple-900">Sortear!</button>
                                             @endif
-
                                             @if ($raffle->status !== 'finished' && $raffle->status !== 'cancelled')
                                                 <button wire:click="cancelRaffle({{ $raffle->id }})" wire:confirm="Tem certeza que deseja cancelar esta rifa?" class="ml-4 text-red-600 hover:text-red-900">Cancelar</button>
                                             @endif
@@ -96,6 +124,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -104,7 +133,6 @@
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity flex items-center justify-center z-50">
             <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
                 <h2 class="text-2xl font-bold mb-4">{{ $editingRaffle ? 'Editar Rifa' : 'Criar Nova Rifa' }}</h2>
-
                 <form wire:submit.prevent="save">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="col-span-2">
@@ -159,4 +187,47 @@
             </div>
         </div>
     @endif
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('livewire:load', function () {
+            let salesChart;
+            const ctx = document.getElementById('salesChart').getContext('2d');
+
+            const initChart = (chartData) => {
+                if (salesChart) {
+                    salesChart.destroy();
+                }
+                salesChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [{
+                            label: 'Vendas (R$)',
+                            data: chartData.data,
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true,
+                        }]
+                    },
+                    options: {
+                        scales: { y: { beginAtZero: true } },
+                        maintainAspectRatio: false,
+                    }
+                });
+            }
+
+            // Inicializa com os dados passados pelo PHP
+            initChart(@json($salesChartData));
+
+            // Ouve o evento do Livewire para atualizar
+            Livewire.on('salesDataUpdated', event => {
+                initChart(event);
+            });
+        });
+    </script>
+    @endpush
 </div>
