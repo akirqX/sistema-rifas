@@ -1,3 +1,14 @@
+/*
+  1. Primeiro, importamos o SEU CSS customizado.
+     Isso define suas variáveis, fontes e estilos base.
+*/
+@import "prodgio.css";
+
+/*
+  2. Depois, importamos o Tailwind.
+     Ele vai usar suas variáveis e adicionar as classes utilitárias
+     sem sobrescrever seus estilos principais.
+*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

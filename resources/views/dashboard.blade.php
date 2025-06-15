@@ -1,61 +1,69 @@
-<div>
-    {{-- BARRA INFERIOR DE COMPRA --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-gray-800 border-t border-gray-700 p-4 shadow-lg z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center text-white sm:px-6 lg:px-8">
-            <div>
-                <span class="text-sm text-gray-400">Selecionadas</span>
-                <p class="text-2xl font-bold">{{ count($selectedTickets) }}</p>
+<x-app-layout>
+    {{-- A estrutura do seu novo layout app.blade.php já será aplicada aqui --}}
+
+    <main>
+        {{-- Hero Section Simples de Boas-Vindas --}}
+        <section class="section-sm" style="padding-top: var(--spacing-4xl); padding-bottom: var(--spacing-4xl);">
+            <div class="container text-center">
+                <h1 class="hero-title">
+                    Bem-vindo, <span class="highlight">{{ auth()->user()->name }}</span>!
+                </h1>
+                <p class="hero-subtitle">
+                    Esta é a sua central. Fique por dentro das novidades e acesse nossas rifas.
+                </p>
             </div>
-            <div>
-                <span class="text-sm text-gray-400">Total</span>
-                <p class="text-2xl font-bold text-green-400">R$
-                    {{ number_format(count($selectedTickets) * $raffle->ticket_price, 2, ',', '.') }}</p>
-            </div>
-            <button wire:click="reserveTickets" wire:loading.attr="disabled"
-                class="bg-green-500 hover:bg-green-600 font-bold py-3 px-8 rounded-lg text-lg disabled:opacity-50 disabled:cursor-wait">
-                <span wire:loading.remove>COMPRAR</span>
-                <span wire:loading>AGUARDE...</span>
-            </button>
-        </div>
-    </div>
+        </section>
 
-    {{-- A view da nossa página de rifa será inserida dentro do layout do Breeze --}}
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @if(session()->has('error'))
-                <div class="mb-4 p-4 bg-red-200 text-red-800 rounded-lg">
-                    {{ session('error') }}
-                </div>
-            @endif
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    <h1 class="text-3xl font-bold mb-2">{{ $raffle->title }}</h1>
-                    <p class="text-gray-600 mb-8">{{ $raffle->description }}</p>
+        {{-- Seção de Links e Ações --}}
+        <section class="section">
+            <div class="container">
+                <div class="max-w-4xl mx-auto">
+                    {{-- Central de Ações --}}
+                    <div class="contact-info-wrapper" style="margin-bottom: var(--spacing-xl);">
+                        {{-- Botão Principal para as Rifas --}}
+                        <div class="text-center p-6">
+                            <p class="text-lg text-gray-800 dark:text-gray-200" style="color: var(--color-text-light);">Pronto para a sorte grande?</p>
+                            <a href="{{ route('raffles.showcase') }}" class="cta-primary inline-block mt-4">
+                                Ver Rifas Ativas
+                            </a>
+                        </div>
 
-                    <div class="grid grid-cols-5 sm:grid-cols-10 md:grid-cols-15 lg:grid-cols-20 gap-1 text-xs">
-                        @foreach ($tickets as $ticket)
-                            @php
-                                $isSelected = isset($selectedTickets[$ticket->id]);
-                                $isReserved = $ticket->status === 'reserved';
-                                $isPaid = $ticket->status === 'paid';
+                        <hr class="card-divider">
 
-                                $class = 'bg-gray-200 hover:bg-blue-400 text-gray-800'; // Available
-                                if ($isSelected)
-                                    $class = 'bg-green-500 text-white ring-2 ring-offset-2 ring-green-500';
-                                if ($isReserved)
-                                    $class = 'bg-yellow-500 text-white cursor-not-allowed';
-                                if ($isPaid)
-                                    $class = 'bg-red-600 text-white cursor-not-allowed';
-                            @endphp
-                            <button @if($ticket->status === 'available') wire:click="selectTicket({{ $ticket->id }})" @else
-                            disabled @endif
-                                class="p-2 rounded-md text-center font-mono font-semibold transition-all duration-150 {{ $class }}">
-                                {{ str_pad($ticket->number, 4, '0', STR_PAD_LEFT) }}
-                            </button>
-                        @endforeach
+                        {{-- Links da Comunidade --}}
+                        <div class="p-6">
+                            <h3 class="text-xl font-bold text-center mb-6" style="color: var(--color-text-light);">Nossa Comunidade</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {{-- Card Discord --}}
+                                <a href="#" class="block p-6 rounded-lg transition-transform duration-300 hover:transform hover:-translate-y-1" style="background-color: var(--color-bg-tertiary); border: 1px solid var(--color-border);">
+                                    <div class="flex items-center mb-3">
+                                        <i class="fab fa-discord text-3xl" style="color: #5865F2;"></i>
+                                        <h4 class="ml-4 text-lg font-semibold" style="color: var(--color-text-light);">Discord Oficial</h4>
+                                    </div>
+                                    <p class="text-sm" style="color: var(--color-text-muted);">Converse em tempo real, participe de eventos e tire suas dúvidas.</p>
+                                </a>
+                                {{-- Card WhatsApp --}}
+                                <a href="#" class="block p-6 rounded-lg transition-transform duration-300 hover:transform hover:-translate-y-1" style="background-color: var(--color-bg-tertiary); border: 1px solid var(--color-border);">
+                                    <div class="flex items-center mb-3">
+                                        <i class="fab fa-whatsapp text-3xl" style="color: #25D366;"></i>
+                                        <h4 class="ml-4 text-lg font-semibold" style="color: var(--color-text-light);">Grupo no WhatsApp</h4>
+                                    </div>
+                                    <p class="text-sm" style="color: var(--color-text-muted);">Receba notificações importantes sobre as rifas e resultados.</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Links Rápidos de Navegação --}}
+                    <div class="text-center mt-8">
+                        <a href="{{ route('my.orders') }}" class="text-indigo-400 hover:text-indigo-300 mx-4">Meus Pedidos</a>
+                        <span class="text-gray-500">|</span>
+                        <a href="{{ route('my.tickets') }}" class="text-indigo-400 hover:text-indigo-300 mx-4">Minhas Cotas</a>
+                        <span class="text-gray-500">|</span>
+                        <a href="{{ route('profile') }}" class="text-indigo-400 hover:text-indigo-300 mx-4">Meu Perfil</a>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
+        </section>
+    </main>
+</x-app-layout>
