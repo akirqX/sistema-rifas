@@ -18,13 +18,14 @@ class Index extends Component
     public bool $showModal = false;
     public ?Raffle $editingRaffle = null;
 
+    // --- PADRONIZAÇÃO DAS PROPRIEDADES ---
     public string $title = '';
     public string $description = '';
-    public ?float $price = null; // CORREÇÃO: Renomeado de ticket_price para price
-    public ?int $total_numbers = null; // CORREÇÃO: Renomeado de total_tickets para total_numbers
+    public ?float $price = null;
+    public ?int $total_numbers = null;
     public $photo = null;
 
-    // Propriedades para as estatísticas
+    // --- Propriedades para as estatísticas ---
     public float $totalRevenue = 0;
     public int $totalOrders = 0;
     public int $totalTicketsSold = 0;
@@ -33,7 +34,7 @@ class Index extends Component
 
     protected function rules(): array
     {
-        // CORREÇÃO: As regras agora apontam para os nomes corretos das propriedades
+        // --- REGRAS APONTANDO PARA AS PROPRIEDADES CORRETAS ---
         $rules = [
             'title' => 'required|string|min:5',
             'description' => 'required|string',
@@ -68,26 +69,15 @@ class Index extends Component
                 DB::raw('DATE(created_at) as date'),
                 DB::raw('SUM(total_amount) as total')
             )
-            ->groupBy('date')
-            ->orderBy('date', 'asc')
-            ->get()
-            ->keyBy('date');
+            ->groupBy('date')->orderBy('date', 'asc')->get()->keyBy('date');
 
         $dates = collect(range(0, 6))->map(function ($day) use ($sales) {
             $date = now()->subDays($day)->format('Y-m-d');
             $sale = $sales->get($date);
-
-            return [
-                'label' => Carbon::parse($date)->format('d/m'),
-                'total' => $sale ? $sale->total : 0,
-            ];
+            return ['label' => Carbon::parse($date)->format('d/m'), 'total' => $sale ? $sale->total : 0];
         })->reverse()->values();
 
-        $this->salesChartData = [
-            'labels' => $dates->pluck('label')->all(),
-            'data' => $dates->pluck('total')->all(),
-        ];
-
+        $this->salesChartData = ['labels' => $dates->pluck('label')->all(), 'data' => $dates->pluck('total')->all()];
         $this->dispatch('salesDataUpdated', $this->salesChartData);
     }
 
@@ -105,8 +95,9 @@ class Index extends Component
         $this->editingRaffle = $raffle;
         $this->title = $raffle->title;
         $this->description = $raffle->description;
-        $this->price = $raffle->price; // CORREÇÃO: Buscando da coluna 'price'
-        $this->total_numbers = $raffle->total_numbers; // CORREÇÃO: Buscando da coluna 'total_numbers'
+        // --- CORREÇÃO: Buscando os valores corretos do banco ---
+        $this->price = $raffle->price;
+        $this->total_numbers = $raffle->total_numbers;
         $this->photo = null;
         $this->showModal = true;
     }
@@ -121,7 +112,7 @@ class Index extends Component
         $this->validate();
         try {
             DB::transaction(function () {
-                // CORREÇÃO: O array de dados agora usa os nomes exatos das colunas do banco
+                // --- CORREÇÃO: Usando as chaves corretas para salvar no banco ---
                 $data = [
                     'title' => $this->title,
                     'description' => $this->description,
@@ -132,10 +123,9 @@ class Index extends Component
                     $raffleToProcess = $this->editingRaffle;
                     session()->flash('success', 'Rifa atualizada com sucesso!');
                 } else {
-                    $data['total_numbers'] = $this->total_numbers; // CORREÇÃO FINAL AQUI
+                    $data['total_numbers'] = $this->total_numbers;
                     $data['status'] = 'pending';
                     $data['user_id'] = auth()->id();
-
                     $raffleToProcess = Raffle::create($data);
 
                     $tickets = [];
@@ -185,20 +175,12 @@ class Index extends Component
     public function performDraw(Raffle $raffle): void
     {
         $paidTickets = $raffle->tickets()->where('status', 'paid')->get();
-
         if ($paidTickets->isEmpty()) {
             session()->flash('error', 'Não é possível sortear uma rifa sem nenhuma cota paga.');
             return;
         }
-
         $winningTicket = $paidTickets->random();
-
-        $raffle->update([
-            'status' => 'finished',
-            'winner_ticket_id' => $winningTicket->id,
-            'drawn_at' => now(),
-        ]);
-
+        $raffle->update(['status' => 'finished', 'winner_ticket_id' => $winningTicket->id, 'drawn_at' => now()]);
         session()->flash('success', "Sorteio realizado! A cota vencedora é #{$winningTicket->number}.");
         $this->calculateStats();
         $this->prepareSalesChart();
