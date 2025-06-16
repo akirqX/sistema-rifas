@@ -2,55 +2,57 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Ticket;
+use App\Models\Order;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB; // IMPORTANTE: Adicionar esta linha
 
-class TicketsCleanupCommand extends Command
+class OrdersCleanupCommand extends Command
 {
-    /**
-     * A assinatura do comando. É como você vai chamá-lo no terminal.
-     * Nós damos um nome claro a ele.
-     */
-    protected $signature = 'tickets:cleanup';
+    protected $signature = 'orders:cleanup';
+    protected $description = 'Cancela pedidos pendentes expirados e libera os tickets';
 
-    /**
-     * A descrição do comando, que aparece quando você lista os comandos artisan.
-     */
-    protected $description = 'Libera os tickets reservados cujo tempo de reserva expirou';
-
-    /**
-     * Executa a lógica do comando.
-     */
     public function handle()
     {
-        $this->info('Iniciando a limpeza de tickets expirados...');
+        $this->info('Iniciando a limpeza de pedidos expirados...');
 
-        // Encontra todos os tickets que:
-        // 1. Têm o status 'reserved'.
-        // 2. O campo 'reserved_until' tem um tempo que já passou.
-        $expiredTickets = Ticket::where('status', 'reserved')
-            ->where('reserved_until', '<', now());
+        // Encontra todos os pedidos que estão pendentes e cujo tempo de expiração já passou.
+        $expiredOrders = Order::where('status', 'pending')
+            ->where('expires_at', '<', now())
+            ->get();
 
-        // Pega a contagem de tickets a serem liberados para exibir no log.
-        $count = $expiredTickets->count();
-
-        if ($count > 0) {
-            // Atualiza todos os tickets encontrados de uma só vez.
-            $expiredTickets->update([
-                'status' => 'available',
-                'session_id' => null,
-                'reserved_until' => null,
-                'order_id' => null,
-                'user_id' => null, // Limpa também o user_id da reserva
-            ]);
-
-            // Exibe uma mensagem de sucesso no terminal.
-            $this->info("Sucesso! {$count} ticket(s) foram liberados.");
-        } else {
-            // Exibe uma mensagem informando que nada precisou ser feito.
-            $this->info('Nenhum ticket expirado encontrado.');
+        if ($expiredOrders->isEmpty()) {
+            $this->info('Nenhum pedido expirado encontrado.');
+            return 0;
         }
 
-        return 0; // Retorna 0 para indicar que o comando foi executado com sucesso.
+        $this->info("Encontrados {$expiredOrders->count()} pedidos para cancelar...");
+
+        foreach ($expiredOrders as $order) {
+            try {
+                // 👇👇👇 MELHORIA DE SEGURANÇA ESTÁ AQUI 👇👇👇
+                DB::transaction(function () use ($order) {
+                    // Primeiro, libera os tickets associados ao pedido.
+                    $order->tickets()->update([
+                        'status' => 'available',
+                        'order_id' => null,
+                        'user_id' => null,
+                        'session_id' => null,
+                        'reserved_until' => null,
+                    ]);
+
+                    // Depois, atualiza o status do próprio pedido.
+                    $order->update(['status' => 'cancelled']);
+                });
+
+                $this->info("Pedido #{$order->id} cancelado e tickets liberados com sucesso.");
+
+            } catch (\Exception $e) {
+                // Se algo der errado na transação, loga o erro e continua para o próximo.
+                $this->error("Falha ao processar o pedido #{$order->id}: " . $e->getMessage());
+            }
+        }
+
+        $this->info('Limpeza de pedidos expirados concluída.');
+        return 0;
     }
 }
