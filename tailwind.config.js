@@ -12,7 +12,7 @@ export default {
 
     theme: {
         extend: {
-            // 👇👇👇 A CORREÇÃO ESTÁ AQUI 👇👇👇
+            // Mapeamento das suas cores para o Tailwind
             colors: {
                 primary: {
                     light: 'var(--color-primary-light)',
@@ -26,18 +26,20 @@ export default {
                 'bg-secondary': 'var(--color-bg-secondary)',
                 'bg-tertiary': 'var(--color-bg-tertiary)',
             },
+            // Mapeamento das suas fontes para o Tailwind
             fontFamily: {
                 sans: ['Montserrat', ...defaultTheme.fontFamily.sans],
                 heading: ['Archivo Black', ...defaultTheme.fontFamily.sans],
             },
-            // Adicione outras customizações aqui se precisar
+            // CORREÇÃO: Ensina o Tailwind a usar sua cor de borda personalizada
+            borderColor: theme => ({
+                ...theme('colors'),
+                DEFAULT: 'var(--color-border)', // A mágica está aqui
+                'primary-light': 'var(--color-primary-light)',
+                'primary-dark': 'var(--color-primary-dark)',
+            }),
         },
     },
-
-    // Não precisamos mais desativar o preflight
-    // corePlugins: {
-    //     preflight: false,
-    // },
 
     plugins: [
         forms,
