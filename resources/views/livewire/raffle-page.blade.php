@@ -1,6 +1,20 @@
 <div>
     <section class="section">
         <div class="container mx-auto px-4">
+
+            {{-- ADIÇÃO: Bloco para exibir mensagens de erro --}}
+            @if(session()->has('error'))
+                <div class="mb-4 rounded-md bg-red-500/20 p-4 text-sm text-red-300 border border-red-500/30">
+                    <strong>Ops!</strong> {{ session('error') }}
+                </div>
+            @endif
+             @if(session()->has('info'))
+                <div class="mb-4 rounded-md bg-blue-500/20 p-4 text-sm text-blue-300 border border-blue-500/30">
+                    {{ session('info') }}
+                </div>
+            @endif
+
+            {{-- Detalhes da Rifa --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div>
                     <img class="rounded-2xl shadow-lg w-full aspect-video object-cover border border-border" src="{{ $raffle->getFirstMediaUrl('raffles') ?: 'https://via.placeholder.com/800x450.png?text=Rifa' }}" alt="Imagem da {{ $raffle->title }}">
@@ -12,7 +26,9 @@
                 </div>
             </div>
 
+            {{-- Seção de Ações e Seleção de Cotas --}}
             <div class="bg-bg-secondary p-8 rounded-2xl border border-border">
+
                 <div class="bg-bg-tertiary p-4 rounded-lg mb-6 sticky top-24 z-20">
                     <div class="flex flex-wrap justify-between items-center gap-4">
                         <div>

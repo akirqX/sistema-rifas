@@ -21,7 +21,7 @@ class CheckoutPage extends Component
         $ticketNumbers = session('checkout_tickets');
 
         if (!$raffleId || empty($ticketNumbers) || $raffleId != $raffle->id) {
-            session()->flash('error', 'Ocorreu um erro ao processar seu pedido. Por favor, selecione as cotas novamente.');
+            session()->flash('error', 'Ocorreu um erro. Por favor, selecione as cotas novamente.');
             $this->redirect(route('raffles.showcase'), navigate: true);
             return;
         }
@@ -34,12 +34,9 @@ class CheckoutPage extends Component
 
     public function createOrder()
     {
-        // Se a propriedade $raffle não foi definida no mount (devido ao redirecionamento),
-        // o método não continua. Esta é uma verificação de segurança mais robusta.
         if (!$this->raffle) {
             return;
         }
-
         if (!auth()->check()) {
             return $this->redirect(route('login'));
         }
@@ -48,11 +45,9 @@ class CheckoutPage extends Component
             $order = DB::transaction(function () {
                 $ticketsToReserve = Ticket::where('raffle_id', $this->raffle->id)
                     ->whereIn('number', $this->ticketNumbers)
-                    ->where('status', 'available') // Garantia extra
+                    ->where('status', 'available')
                     ->lockForUpdate()->get();
 
-                // Verifica se a quantidade de tickets encontrados corresponde à quantidade esperada.
-                // Isso previne que alguém tenha comprado uma das cotas enquanto o usuário estava no checkout.
                 if ($ticketsToReserve->count() !== $this->ticketCount) {
                     throw new \Exception("Uma ou mais cotas selecionadas não estão mais disponíveis. Por favor, tente novamente.");
                 }
@@ -62,13 +57,17 @@ class CheckoutPage extends Component
                     'raffle_id' => $this->raffle->id,
                     'total_amount' => $this->totalAmount,
                     'status' => 'pending',
+                    'ticket_quantity' => $this->ticketCount,
+
+                    // 👇👇👇 A CORREÇÃO FINAL ESTÁ AQUI 👇👇👇
+                    // Define que o pedido expira em 15 minutos a partir de agora.
+                    'expires_at' => now()->addMinutes(15),
                 ]);
 
-                // Como a collection já está travada, podemos usar um update em massa.
                 Ticket::whereIn('id', $ticketsToReserve->pluck('id'))->update([
                     'order_id' => $order->id,
                     'user_id' => auth()->id(),
-                    'status' => 'pending',
+                    'status' => 'reserved',
                 ]);
 
                 return $order;
@@ -80,15 +79,13 @@ class CheckoutPage extends Component
             return $this->redirect(route('my.orders'), navigate: true);
 
         } catch (\Exception $e) {
-            session()->flash('error', $e->getMessage());
-            // Opcional: redirecionar de volta para a rifa
+            session()->flash('error', 'Erro ao criar pedido: ' . $e->getMessage());
             return $this->redirect(route('raffle.show', ['raffle' => $this->raffle->id]), navigate: true);
         }
     }
 
     public function render()
     {
-        // A view só será renderizada se $this->raffle não for nulo, evitando erros.
         return view('livewire.checkout-page')->layout('layouts.app');
     }
 }
