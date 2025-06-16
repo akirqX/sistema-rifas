@@ -1,89 +1,94 @@
 <?php
+
 namespace App\Livewire;
+
+use App\Models\Order;
 use App\Models\Raffle;
 use App\Models\Ticket;
-use App\Models\Order;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Session;
 use Livewire\Component;
+
 class CheckoutPage extends Component
 {
-    public Raffle $raffle;
-    public array $selectedTicketsData = [];
-    public int $ticketCount = 0;
+    public ?Raffle $raffle = null;
+    public array $ticketNumbers = [];
     public float $totalAmount = 0;
-
-    // Campos do formulário
-    public string $name = '';
-    public string $email = '';
-    public string $phone = '';
-    public string $cpf = '';
-
-    protected $rules = [
-        'name' => 'required|string|min:3',
-        'email' => 'required|email',
-        'phone' => 'required|string', // Adicionar máscara/validação depois
-        'cpf' => 'required|string',   // Adicionar máscara/validação depois
-    ];
+    public int $ticketCount = 0;
 
     public function mount(Raffle $raffle)
     {
+        $raffleId = session('checkout_raffle_id');
+        $ticketNumbers = session('checkout_tickets');
+
+        if (!$raffleId || empty($ticketNumbers) || $raffleId != $raffle->id) {
+            session()->flash('error', 'Ocorreu um erro ao processar seu pedido. Por favor, selecione as cotas novamente.');
+            $this->redirect(route('raffles.showcase'), navigate: true);
+            return;
+        }
+
         $this->raffle = $raffle;
-        $selectedIds = Session::get('selected_tickets_for_' . $this->raffle->id, []);
-        if (empty($selectedIds)) {
-            return $this->redirect(route('raffle.show', $this->raffle), navigate: true);
-        }
-        $this->selectedTicketsData = Ticket::whereIn('id', $selectedIds)->where('status', 'available')->get()->toArray();
-        if (count($this->selectedTicketsData) !== count($selectedIds)) {
-            session()->flash('error', 'Ops! Algumas cotas foram reservadas enquanto você escolhia. Por favor, tente novamente.');
-            return $this->redirect(route('raffle.show', $this->raffle), navigate: true);
-        }
-        $this->ticketCount = count($this->selectedTicketsData);
-        $this->totalAmount = $this->ticketCount * $this->raffle->ticket_price;
+        $this->ticketNumbers = $ticketNumbers;
+        $this->ticketCount = count($ticketNumbers);
+        $this->totalAmount = $this->raffle->price * $this->ticketCount;
     }
 
-    public function processOrder()
+    public function createOrder()
     {
-        $this->validate();
-        $order = null;
+        // Se a propriedade $raffle não foi definida no mount (devido ao redirecionamento),
+        // o método não continua. Esta é uma verificação de segurança mais robusta.
+        if (!$this->raffle) {
+            return;
+        }
+
+        if (!auth()->check()) {
+            return $this->redirect(route('login'));
+        }
+
         try {
-            DB::transaction(function () use (&$order) {
-                $ticketIds = array_column($this->selectedTicketsData, 'id');
-                // Revalida as cotas para evitar race condition
-                $ticketsToReserve = Ticket::whereIn('id', $ticketIds)->where('status', 'available')->lockForUpdate()->get();
+            $order = DB::transaction(function () {
+                $ticketsToReserve = Ticket::where('raffle_id', $this->raffle->id)
+                    ->whereIn('number', $this->ticketNumbers)
+                    ->where('status', 'available') // Garantia extra
+                    ->lockForUpdate()->get();
+
+                // Verifica se a quantidade de tickets encontrados corresponde à quantidade esperada.
+                // Isso previne que alguém tenha comprado uma das cotas enquanto o usuário estava no checkout.
                 if ($ticketsToReserve->count() !== $this->ticketCount) {
-                    throw new \Exception('Cotas não estão mais disponíveis.');
+                    throw new \Exception("Uma ou mais cotas selecionadas não estão mais disponíveis. Por favor, tente novamente.");
                 }
 
                 $order = Order::create([
+                    'user_id' => auth()->id(),
                     'raffle_id' => $this->raffle->id,
-                    'ticket_quantity' => $this->ticketCount,
                     'total_amount' => $this->totalAmount,
                     'status' => 'pending',
-                    'expires_at' => now()->addMinutes(10),
-                    'guest_name' => $this->name,
-                    'guest_email' => $this->email,
-                    'guest_phone' => $this->phone,
-                    'guest_cpf' => $this->cpf,
                 ]);
 
-                Ticket::whereIn('id', $ticketIds)->update([
-                    'status' => 'reserved',
+                // Como a collection já está travada, podemos usar um update em massa.
+                Ticket::whereIn('id', $ticketsToReserve->pluck('id'))->update([
                     'order_id' => $order->id,
+                    'user_id' => auth()->id(),
+                    'status' => 'pending',
                 ]);
+
+                return $order;
             });
 
-            // Limpa a sessão e redireciona
-            Session::forget('selected_tickets_for_' . $this->raffle->id);
-            // Aqui seria a integração com a página de pagamento real
-            return redirect()->route('payment.page', ['order' => $order->id]);
+            session()->forget(['checkout_raffle_id', 'checkout_tickets']);
+
+            session()->flash('success', 'Seu pedido foi criado com sucesso! Você pode acompanhá-lo em "Meus Pedidos".');
+            return $this->redirect(route('my.orders'), navigate: true);
+
         } catch (\Exception $e) {
-            session()->flash('error', 'Ocorreu um erro ao processar seu pedido. Por favor, tente novamente.');
-            return $this->redirect(route('raffle.show', $this->raffle), navigate: true);
+            session()->flash('error', $e->getMessage());
+            // Opcional: redirecionar de volta para a rifa
+            return $this->redirect(route('raffle.show', ['raffle' => $this->raffle->id]), navigate: true);
         }
     }
+
     public function render()
     {
+        // A view só será renderizada se $this->raffle não for nulo, evitando erros.
         return view('livewire.checkout-page')->layout('layouts.app');
     }
 }

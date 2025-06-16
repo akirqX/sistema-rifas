@@ -9,8 +9,10 @@ class Showcase extends Component
 {
     public function render()
     {
-        // Busca apenas as rifas ativas, ordenadas pelas mais recentes
-        $raffles = Raffle::where('status', 'active')->latest()->get();
+        $raffles = Raffle::where('status', 'active')
+            ->with('media')
+            ->latest()
+            ->get();
 
         return view('livewire.raffles.showcase', [
             'raffles' => $raffles,

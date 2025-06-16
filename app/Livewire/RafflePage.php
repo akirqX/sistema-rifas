@@ -1,43 +1,69 @@
 <?php
+
 namespace App\Livewire;
+
 use App\Models\Raffle;
-use Illuminate\Support\Facades\Session;
 use Livewire\Component;
+
 class RafflePage extends Component
 {
     public Raffle $raffle;
+    public array $selectedTickets = [];
+    public int $quantity = 1;
     public $tickets;
-    public $selectedTickets = [];
+
     public function mount(Raffle $raffle)
     {
-        $this->raffle = $raffle->load('winner.user');
-        $this->tickets = $this->raffle->tickets()->orderBy('number')->get();
+        $this->raffle = $raffle->load('tickets');
+        $this->tickets = $this->raffle->tickets;
     }
-    public function selectTicket($ticketId)
+
+    public function selectTicket($ticketNumber)
     {
-        $ticket = $this->tickets->find($ticketId);
-        if ($ticket && $ticket->status !== 'available') {
-            session()->flash('error', 'Esta cota não está mais disponível!');
-            return;
-        }
-        if (isset($this->selectedTickets[$ticketId])) {
-            unset($this->selectedTickets[$ticketId]);
+        if (in_array($ticketNumber, $this->selectedTickets)) {
+            $this->selectedTickets = array_diff($this->selectedTickets, [$ticketNumber]);
         } else {
-            $this->selectedTickets[$ticketId] = $ticketId;
+            $this->selectedTickets[] = $ticketNumber;
         }
     }
-    // ESTE MÉTODO AGORA É MAIS SIMPLES
+
+    public function selectRandomTickets()
+    {
+        $this->validate(['quantity' => 'required|integer|min:1']);
+
+        $availableTickets = $this->raffle->tickets()
+            ->where('status', 'available')
+            ->inRandomOrder()
+            ->limit($this->quantity)
+            ->pluck('number')
+            ->toArray();
+
+        $this->selectedTickets = array_unique(array_merge($this->selectedTickets, $availableTickets));
+
+        if (count($availableTickets) < $this->quantity) {
+            session()->flash('info', 'Foram encontradas apenas ' . count($availableTickets) . ' cotas disponíveis.');
+        }
+    }
+
     public function reserveTickets()
     {
-        if (empty($this->selectedTickets))
+        if (empty($this->selectedTickets)) {
+            session()->flash('error', 'Você precisa selecionar pelo menos uma cota para continuar.');
             return;
+        }
 
-        // Guarda as cotas na sessão e redireciona para o checkout
-        Session::put('selected_tickets_for_' . $this->raffle->id, $this->selectedTickets);
-        return $this->redirect(route('checkout', $this->raffle), navigate: true);
+        session([
+            'checkout_raffle_id' => $this->raffle->id,
+            'checkout_tickets' => $this->selectedTickets,
+        ]);
+
+        return $this->redirect(route('checkout', ['raffle' => $this->raffle->id]), navigate: true);
     }
+
     public function render()
     {
-        return view('livewire.raffle-page')->layout('layouts.app');
+        return view('livewire.raffle-page', [
+            'tickets' => $this->tickets
+        ])->layout('layouts.app');
     }
 }
