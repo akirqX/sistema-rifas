@@ -4,10 +4,8 @@ import './bootstrap';
 // JAVASCRIPT PARA O DESIGN PRODGIO - VERSÃO FINAL E CORRIGIDA
 // ========================================================================
 
-// Criamos uma função reutilizável para inicializar todos os scripts da interface.
-// Isso é importante porque precisamos rodá-la em toda navegação.
+// Função principal que configura todos os scripts da interface.
 const initializeProdgioScripts = () => {
-
     const header = document.getElementById('header');
     const navbarToggle = document.getElementById('navbar-toggle');
     const navbarMobile = document.getElementById('navbar-mobile');
@@ -15,29 +13,31 @@ const initializeProdgioScripts = () => {
     const backToTopBtn = document.getElementById('back-to-top');
     const loadingScreen = document.querySelector('.loading-screen');
 
-    // --- CORREÇÃO DO LOADING SCREEN ---
-    // A lógica para esconder a tela de loading agora está aqui dentro.
+    // Esconde a tela de loading com um pequeno delay.
     if (loadingScreen) {
-        // Um pequeno delay para a animação de fade-out ser visível e suave.
         setTimeout(() => {
             loadingScreen.classList.add('hidden');
         }, 150);
     }
 
-    // --- Lógica do Menu Mobile ---
-    if (navbarToggle && navbarMobile) {
-        // Removemos eventuais listeners antigos para evitar duplicação
-        const newToggle = navbarToggle.cloneNode(true);
-        navbarToggle.parentNode.replaceChild(newToggle, navbarToggle);
-
-        newToggle.addEventListener('click', () => {
-            newToggle.classList.toggle('active');
+    // --- CORREÇÃO DA LÓGICA DO MENU MOBILE ---
+    // A lógica de abrir/fechar o menu.
+    const toggleMenu = () => {
+        if (navbarToggle && navbarMobile) {
+            navbarToggle.classList.toggle('active');
             navbarMobile.classList.toggle('active');
             document.body.classList.toggle('no-scroll');
-        });
+        }
+    };
+
+    // Anexa o evento de clique ao botão do menu.
+    // Usamos uma verificação para garantir que o listener não seja duplicado.
+    if (navbarToggle && !navbarToggle.dataset.listenerAttached) {
+        navbarToggle.addEventListener('click', toggleMenu);
+        navbarToggle.dataset.listenerAttached = 'true';
     }
 
-    // --- Lógica do Header e Barra de Progresso ---
+    // --- Lógica do Header, Scroll e Botão Voltar ao Topo ---
     const handleScroll = () => {
         if (header && window.scrollY > 50) {
             header.classList.add('scrolled');
@@ -58,38 +58,23 @@ const initializeProdgioScripts = () => {
         }
     };
 
-    // Anexamos o evento de scroll uma vez.
     window.addEventListener('scroll', handleScroll, { passive: true });
 
-    // Ação do botão "Voltar ao Topo"
-    if (backToTopBtn) {
-        const newBtn = backToTopBtn.cloneNode(true);
-        backToTopBtn.parentNode.replaceChild(newBtn, backToTopBtn);
-        newBtn.addEventListener('click', () => {
+    if (backToTopBtn && !backToTopBtn.dataset.listenerAttached) {
+        backToTopBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+        backToTopBtn.dataset.listenerAttached = 'true';
     }
 };
 
 
 // --- EXECUÇÃO DOS SCRIPTS ---
 
-// 1. Executa os scripts na carga inicial da página.
-document.addEventListener('DOMContentLoaded', () => {
-    initializeProdgioScripts();
-});
+// 1. Executa na carga inicial da página.
+document.addEventListener('DOMContentLoaded', initializeProdgioScripts);
 
-// 2. CORREÇÃO CRÍTICA: Ouve o evento do Livewire e executa os scripts NOVAMENTE a cada navegação SPA.
+// 2. Ouve o evento do Livewire e re-executa a função a cada navegação.
 document.addEventListener('livewire:navigated', () => {
-    // Esconde o menu mobile caso ele estivesse aberto na página anterior.
-    const navbarToggle = document.getElementById('navbar-toggle');
-    const navbarMobile = document.getElementById('navbar-mobile');
-    if (navbarToggle && navbarMobile) {
-        navbarToggle.classList.remove('active');
-        navbarMobile.classList.remove('active');
-        document.body.classList.remove('no-scroll');
-    }
-
-    // Re-inicializa os scripts para a nova página.
     initializeProdgioScripts();
 });

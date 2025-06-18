@@ -3533,3 +3533,344 @@ select:focus {
     left: 40%;
     animation-delay: 22s;
 }
+
+/* ===================================
+   MENU MOBILE FINAL: DROPDOWN COMPLETO E SUTIL
+   =================================== */
+
+/* --- 1. O Botão (Hambúrguer para X) --- */
+
+.navbar-toggle {
+    display: none;
+    /* Escondido por padrão no desktop */
+    position: fixed;
+    /* Fixo na tela, independente do scroll */
+    top: 1rem;
+    right: 1.5rem;
+    z-index: calc(var(--z-modal) + 10);
+    /* Z-index MUITO ALTO para garantir que fique sobre tudo */
+
+    /* Estilos visuais */
+    flex-direction: column;
+    gap: 0.35rem;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    transition: transform 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.navbar-toggle:hover {
+    transform: scale(1.1);
+}
+
+/* Mostra o botão apenas em telas mobile */
+@media (max-width: 768px) {
+    .navbar-toggle {
+        display: flex;
+    }
+}
+
+.toggle-line {
+    width: 1.75rem;
+    height: 2px;
+
+    border-radius: var(--radius-full);
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
+    transform-origin: center;
+}
+
+/* Animação para o 'X' quando o menu está ativo */
+.navbar-toggle.active .toggle-line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.navbar-toggle.active .toggle-line:nth-child(2) {
+    opacity: 0;
+}
+
+.navbar-toggle.active .toggle-line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* --- 2. O Menu Dropdown (Container Principal) --- */
+
+.navbar-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(29, 26, 26, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    z-index: var(--z-modal);
+
+    display: flex;
+    flex-direction: column;
+    padding: 8rem 2rem 2rem;
+    /* Aumenta o padding do topo para não ficar atrás do botão */
+}
+
+.navbar-mobile.active {
+    transform: translateX(0);
+}
+
+/* --- 3. O Conteúdo Interno do Menu --- */
+
+.mobile-menu {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.mobile-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 1rem;
+}
+
+.mobile-links a {
+    display: block;
+    color: var(--color-text-light);
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.mobile-links a:hover {
+    color: var(--color-primary-light);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.mobile-social {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--color-border);
+}
+
+.mobile-social a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    background: rgba(209, 62, 255, 0.1);
+    border: 1px solid rgba(209, 62, 255, 0.3);
+    border-radius: 50%;
+    color: var(--color-text-light);
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.mobile-social a:hover {
+    background: var(--color-primary-light);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(209, 62, 255, 0.2);
+}
+
+/* ===================================
+   MENU MOBILE FINAL: DROPDOWN COMPLETO E SUTIL
+   =================================== */
+
+/* --- 1. O Botão (Hambúrguer para X) --- */
+
+.navbar-toggle {
+    display: none;
+    /* Escondido por padrão no desktop */
+    position: fixed;
+    /* Fixo na tela, independente do scroll */
+    top: 1rem;
+    right: 1.5rem;
+    z-index: calc(var(--z-modal) + 10);
+    /* Z-index MUITO ALTO para garantir que fique sobre tudo */
+
+    /* Estilos visuais */
+    flex-direction: column;
+    gap: 0.35rem;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    transition: transform 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.navbar-toggle:hover {
+    transform: scale(1.1);
+}
+
+/* Mostra o botão apenas em telas mobile */
+@media (max-width: 768px) {
+    .navbar-toggle {
+        display: flex;
+    }
+}
+
+.toggle-line {
+    width: 1.75rem;
+    height: 2px;
+    background: var(--color-text-light);
+    border-radius: var(--radius-full);
+    transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease;
+    transform-origin: center;
+}
+
+/* Animação para o 'X' quando o menu está ativo */
+.navbar-toggle.active .toggle-line:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+}
+
+.navbar-toggle.active .toggle-line:nth-child(2) {
+    opacity: 0;
+}
+
+.navbar-toggle.active .toggle-line:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+}
+
+/* --- 2. O Menu Dropdown (Container Principal) --- */
+
+.navbar-mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+    z-index: var(--z-modal);
+
+    display: flex;
+    flex-direction: column;
+    padding: 8rem 2rem 2rem;
+    /* Aumenta o padding do topo para não ficar atrás do botão */
+}
+
+.navbar-mobile.active {
+    transform: translateX(0);
+}
+
+/* --- 3. O Conteúdo Interno do Menu --- */
+
+.mobile-menu {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.mobile-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 1rem;
+}
+
+.mobile-links a {
+    display: block;
+    color: var(--color-text-light);
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.mobile-links a:hover {
+    color: var(--color-primary-light);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.mobile-social {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    padding: 2rem 0;
+    border-top: 1px solid var(--color-border);
+}
+
+.mobile-social a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    background: rgba(209, 62, 255, 0.1);
+    border: 1px solid rgba(209, 62, 255, 0.3);
+    border-radius: 50%;
+    color: var(--color-text-light);
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.mobile-social a:hover {
+    background: var(--color-primary-light);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(209, 62, 255, 0.2);
+}
+
+/* ===================================
+   MENU MOBILE FINAL: DROPDOWN COMPLETO E SUTIL
+   =================================== */
+
+/* --- 1. O Botão (Hambúrguer para X) --- */
+
+.navbar-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    right: 1.5rem;
+    z-index: calc(var(--z-modal) + 10);
+    flex-direction: column;
+    gap: 0.35rem;
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    border-radius: var(--radius-md);
+    transition: transform 0.3s ease;
+
+    /* 👇👇👇 A CORREÇÃO ESTÁ AQUI 👇👇👇 */
+    /* Removemos o fundo, a borda e o desfoque para um visual limpo */
+    background: none;
+    border: none;
+    backdrop-filter: none;
+}
+
+.navbar-toggle:hover {
+    transform: scale(1.1);
+}
+
+/* Mostra o botão apenas em telas mobile */
+@media (max-width: 768px) {
+    .navbar-toggle {
+        display: flex;
+    }
+}
+
+/* ... (resto do seu CSS do menu, sem alterações) ... */

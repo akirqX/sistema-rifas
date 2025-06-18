@@ -12,36 +12,36 @@
                         <h3 class="font-heading text-lg text-white mb-4">Meu Painel</h3>
                         <nav>
                             <ul class="space-y-2">
+                                {{-- Link Ativo --}}
                                 <li>
-                                    <a href="{{ route('dashboard') }}" class="flex items-center p-2 rounded-lg text-primary-light bg-primary-dark/20 font-semibold">
+                                    <a href="{{ route('dashboard') }}" class="flex items-center p-3 rounded-lg font-semibold transition-colors duration-200 {{ request()->routeIs('dashboard') ? 'text-primary-light bg-primary-dark/20' : 'text-text-muted hover:bg-bg-tertiary hover:text-white' }}">
                                         <i class="fas fa-home w-6 text-center"></i>
                                         <span class="ml-3">Início</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('my.orders') }}" class="flex items-center p-2 rounded-lg text-text-muted hover:bg-bg-tertiary hover:text-white transition-colors duration-200">
+                                    <a href="{{ route('my.orders') }}" class="flex items-center p-3 rounded-lg font-semibold transition-colors duration-200 {{ request()->routeIs('my.orders*') ? 'text-primary-light bg-primary-dark/20' : 'text-text-muted hover:bg-bg-tertiary hover:text-white' }}">
                                         <i class="fas fa-receipt w-6 text-center"></i>
                                         <span class="ml-3">Meus Pedidos</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('my.tickets') }}" class="flex items-center p-2 rounded-lg text-text-muted hover:bg-bg-tertiary hover:text-white transition-colors duration-200">
+                                    <a href="{{ route('my.tickets') }}" class="flex items-center p-3 rounded-lg font-semibold transition-colors duration-200 {{ request()->routeIs('my.tickets') ? 'text-primary-light bg-primary-dark/20' : 'text-text-muted hover:bg-bg-tertiary hover:text-white' }}">
                                         <i class="fas fa-ticket-alt w-6 text-center"></i>
                                         <span class="ml-3">Minhas Cotas</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="{{ route('profile') }}" class="flex items-center p-2 rounded-lg text-text-muted hover:bg-bg-tertiary hover:text-white transition-colors duration-200">
+                                    <a href="{{ route('profile.edit') }}" class="flex items-center p-3 rounded-lg font-semibold transition-colors duration-200 {{ request()->routeIs('profile.edit') ? 'text-primary-light bg-primary-dark/20' : 'text-text-muted hover:bg-bg-tertiary hover:text-white' }}">
                                         <i class="fas fa-user-circle w-6 text-center"></i>
                                         <span class="ml-3">Meu Perfil</span>
                                     </a>
                                 </li>
 
-                                {{-- Link para o Painel de Admin, só aparece se o usuário for admin --}}
                                 @if(auth()->user()->is_admin)
                                     <li>
                                         <hr class="border-border my-2">
-                                        <a href="{{ route('admin.raffles.index') }}" class="flex items-center p-2 rounded-lg text-accent hover:bg-bg-tertiary font-semibold transition-colors duration-200">
+                                        <a href="{{ route('admin.raffles.index') }}" class="flex items-center p-3 rounded-lg font-semibold transition-colors duration-200 text-accent hover:bg-accent/10">
                                             <i class="fas fa-shield-halved w-6 text-center"></i>
                                             <span class="ml-3">Painel Admin</span>
                                         </a>
@@ -58,11 +58,11 @@
                 <div class="flex-1">
                     {{-- Card de Boas-Vindas --}}
                     <div class="p-8 bg-bg-secondary rounded-2xl border border-border mb-8 text-center">
-                        <h1 class="font-heading text-4xl text-white">
+                        <h2 class="font-heading text-4xl text-white">
                             Bem-vindo, <span class="highlight">{{ auth()->user()->name }}</span>!
-                        </h1>
+                        </h2>
                         <p class="mt-2 text-lg text-text-muted">
-                            Esta é a sua central. Fique por dentro das novidades e acesse nossas rifas.
+                            Esta é a sua central. Use o menu ao lado para navegar.
                         </p>
                     </div>
 
@@ -73,30 +73,6 @@
                             <a href="{{ route('raffles.showcase') }}" class="cta-primary inline-block mt-4">
                                 Ver Rifas Ativas
                             </a>
-                        </div>
-
-                        <hr class="card-divider my-8">
-
-                        <div class="text-center">
-                            <h3 class="text-xl font-bold text-white mb-6">Nossa Comunidade</h3>
-                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                                {{-- Card Discord --}}
-                                <a href="#" class="block p-6 rounded-lg transition-transform duration-300 hover:transform hover:-translate-y-1 bg-bg-tertiary border border-border">
-                                    <div class="flex items-center justify-center mb-3">
-                                        <i class="fab fa-discord text-3xl" style="color: #5865F2;"></i>
-                                        <h4 class="ml-4 text-lg font-semibold text-white">Discord Oficial</h4>
-                                    </div>
-                                    <p class="text-sm text-text-muted">Converse em tempo real, participe de eventos e tire suas dúvidas.</p>
-                                </a>
-                                {{-- Card WhatsApp --}}
-                                <a href="#" class="block p-6 rounded-lg transition-transform duration-300 hover:transform hover:-translate-y-1 bg-bg-tertiary border border-border">
-                                    <div class="flex items-center justify-center mb-3">
-                                        <i class="fab fa-whatsapp text-3xl" style="color: #25D366;"></i>
-                                        <h4 class="ml-4 text-lg font-semibold text-white">Grupo no WhatsApp</h4>
-                                    </div>
-                                    <p class="text-sm text-text-muted">Receba notificações importantes sobre as rifas e resultados.</p>
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </div>
