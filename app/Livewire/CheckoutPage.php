@@ -6,9 +6,11 @@ use App\Models\Order;
 use App\Models\Raffle;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use MercadoPago\Client\Payment\PaymentClient;
 use MercadoPago\MercadoPagoConfig;
+use MercadoPago\Exceptions\MPApiException;
 
 class CheckoutPage extends Component
 {
@@ -43,8 +45,9 @@ class CheckoutPage extends Component
             return $this->redirect(route('login'));
         }
 
+        $order = null;
+
         try {
-            // A transação do DB agora retorna o pedido criado
             $order = DB::transaction(function () {
                 $ticketsToReserve = Ticket::where('raffle_id', $this->raffle->id)
                     ->whereIn('number', $this->ticketNumbers)
@@ -73,47 +76,58 @@ class CheckoutPage extends Component
                 return $order;
             });
 
-            // --- INÍCIO DA INTEGRAÇÃO COM A API DO MERCADO PAGO ---
-
-            // 1. Configura a SDK com seu Access Token do arquivo .env
             MercadoPagoConfig::setAccessToken(config('services.mercadopago.token'));
-
-            // 2. Cria a requisição de pagamento
             $client = new PaymentClient();
+
+            // CORREÇÃO: Lógica para determinar a URL do Webhook
+            $notificationUrl = route('payment.webhook');
+            if (config('app.env') === 'local' && config('services.mercadopago.ngrok_url')) {
+                $notificationUrl = config('services.mercadopago.ngrok_url') . '/webhook';
+            }
+
             $paymentData = [
-                "transaction_amount" => $order->total_amount,
+                "transaction_amount" => (float) $order->total_amount,
                 "description" => "Pagamento para a rifa: " . $order->raffle->title,
                 "payment_method_id" => "pix",
                 "payer" => [
                     "email" => auth()->user()->email,
                     "first_name" => auth()->user()->name,
+                    "last_name" => 'Comprador',
+                    "identification" => [
+                        "type" => "CPF",
+                        "number" => "52998224725"
+                    ],
                 ],
-                // URL que o Mercado Pago vai chamar para te notificar sobre o status do pagamento
-                "notification_url" => route('payment.webhook')
+                "notification_url" => $notificationUrl
             ];
 
-            // 3. Envia a requisição para a API do Mercado Pago
             $payment = $client->create($paymentData);
 
-            // 4. Salva os dados importantes do PIX no seu banco de dados
             $order->update([
-                'transaction_id' => $payment->id, // ID da transação no Mercado Pago
+                'transaction_id' => $payment->id,
                 'payment_gateway' => 'mercadopago',
-                'payment_details' => json_encode([ // Salva como JSON para flexibilidade
+                'payment_details' => json_encode([
                     'qr_code_base64' => $payment->point_of_interaction->transaction_data->qr_code_base64,
                     'qr_code' => $payment->point_of_interaction->transaction_data->qr_code,
                 ])
             ]);
 
-            // --- FIM DA INTEGRAÇÃO ---
-
             session()->forget(['checkout_raffle_id', 'checkout_tickets']);
 
-            // Redireciona o usuário para a página do pedido, onde ele verá o QR Code
             return $this->redirect(route('my.orders.show', $order), navigate: true);
 
+        } catch (MPApiException $e) {
+            $errorBody = $e->getApiResponse()->getContent();
+            Log::error("Mercado Pago API Error: " . $e->getMessage(), ['response' => $errorBody]);
+            $errorMessage = $errorBody['message'] ?? 'Erro desconhecido na API.';
+            session()->flash('error', 'Ops! Gateway de Pagamento recusou a transação: ' . $errorMessage);
+            return $this->redirect(route('raffle.show', ['raffle' => $this->raffle->id]), navigate: true);
+
         } catch (\Exception $e) {
+            Log::error("General Error during order creation: " . $e->getMessage());
             session()->flash('error', 'Erro ao criar pedido: ' . $e->getMessage());
+            if ($order) { /* Lógica de reversão se necessário */
+            }
             return $this->redirect(route('raffle.show', ['raffle' => $this->raffle->id]), navigate: true);
         }
     }
