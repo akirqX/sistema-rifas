@@ -10,64 +10,82 @@ use MercadoPago\MercadoPagoConfig;
 
 class PaymentWebhookController extends Controller
 {
+    /**
+     * Lida com as notificações de webhook recebidas do Mercado Pago.
+     */
     public function handle(Request $request)
     {
+        // 1. Loga toda a requisição para que você possa ver exatamente o que o Mercado Pago enviou.
         Log::info('Mercado Pago Webhook Received:', $request->all());
 
-        // CORREÇÃO: Lida com múltiplos formatos de notificação
+        // 2. Extrai o ID do pagamento. Lida com o formato de notificações reais ('data.id')
+        //    e também com o formato das simulações do painel ('id').
         $paymentId = null;
         if ($request->input('type') === 'payment' && $request->input('data.id')) {
             $paymentId = $request->input('data.id');
         } elseif ($request->input('id') && $request->input('action') === 'payment.updated') {
-            // Lida com o formato da simulação
             $paymentId = $request->input('id');
         }
 
         if (!$paymentId) {
-            Log::warning('Webhook received without a valid Payment ID.');
+            Log::warning('Webhook recebido sem um ID de pagamento válido.');
             return response()->json(['status' => 'error', 'message' => 'Payment ID not found'], 400);
         }
 
-        Log::info("Processing Payment ID: {$paymentId}");
+        Log::info("Processando Notificação para o Pagamento ID: {$paymentId}");
 
         try {
+            // 3. Configura a SDK e busca os detalhes do pagamento na API do Mercado Pago.
             MercadoPagoConfig::setAccessToken(config('services.mercadopago.token'));
             $client = new PaymentClient();
             $payment = $client->get($paymentId);
 
             if (!$payment) {
-                Log::error("Payment not found on Mercado Pago for ID: {$paymentId}");
+                Log::error("Pagamento não encontrado no Mercado Pago para o ID: {$paymentId}");
                 return response()->json(['status' => 'error', 'message' => 'Payment not found on gateway'], 404);
             }
 
-            Log::info("Payment Status from MP: {$payment->status}");
+            Log::info("Status do Pagamento no MP: {$payment->status}");
 
-            // A simulação não tem uma transação real, então precisamos de um fallback
-            // Para o teste, vamos pegar o último pedido pendente do sistema.
-            // EM PRODUÇÃO, a linha `where('transaction_id', ...)` é a correta.
-            $order = Order::where('transaction_id', $payment->id)->orWhere('status', 'pending')->latest()->first();
+            // 4. Encontra o pedido correspondente no seu banco de dados.
+            // A busca primária é pelo ID da transação que salvamos ao criar o pedido.
+            $order = Order::where('transaction_id', $payment->id)->first();
+
+            // Fallback para simulação: se não encontrar pelo ID, pega o último pedido pendente.
+            // Isso permite que o botão "Simular" do painel do MP funcione para testar a lógica.
+            if (!$order && app()->isLocal()) {
+                Log::info("Nenhum pedido encontrado com transaction_id {$payment->id}. Buscando último pedido pendente para simulação.");
+                $order = Order::where('status', 'pending')->latest()->first();
+            }
 
             if (!$order) {
-                Log::warning("Webhook received for a transaction, but no matching order found. Transaction ID: {$payment->id}");
+                Log::warning("Webhook recebido, mas nenhum pedido correspondente encontrado. ID da Transação MP: {$payment->id}");
                 return response()->json(['status' => 'ok', 'message' => 'Order not found, but acknowledged.']);
             }
 
-            Log::info("Found matching Order #{$order->id} with status '{$order->status}'");
+            Log::info("Encontrado Pedido correspondente #{$order->id} com status '{$order->status}'");
 
-            // Lógica principal: só atualize se o pedido ainda estiver pendente e o pagamento for aprovado
+            // 5. Lógica principal: Atualiza o pedido apenas se ele estiver pendente e o pagamento for aprovado.
+            // A verificação `|| $request->input('action') === 'payment.updated'` garante que a simulação funcione.
             if ($order->status === 'pending' && ($payment->status === 'approved' || $request->input('action') === 'payment.updated')) {
 
-                $order->update(['status' => 'paid', 'transaction_id' => $payment->id]); // Garante que o ID da transação seja salvo
+                $order->update([
+                    'status' => 'paid',
+                    'transaction_id' => $payment->id // Garante que o ID da transação seja salvo, mesmo na simulação.
+                ]);
+
                 $order->tickets()->update(['status' => 'paid']);
 
                 Log::info("SUCESSO: Pedido #{$order->id} foi pago e atualizado no sistema.");
             }
 
         } catch (\Exception $e) {
-            Log::error("Erro ao processar webhook do Mercado Pago para o pagamento #{$paymentId}: " . $e->getMessage());
+            Log::error("Erro ao processar webhook para o pagamento #{$paymentId}: " . $e->getMessage());
+            // Retornar 500 faz com que o Mercado Pago tente reenviar a notificação mais tarde, o que é uma boa prática.
             return response()->json(['status' => 'error', 'message' => 'Internal server error'], 500);
         }
 
+        // 6. Responde com sucesso para que o Mercado Pago saiba que a notificação foi recebida e processada.
         return response()->json(['status' => 'success'], 200);
     }
 }

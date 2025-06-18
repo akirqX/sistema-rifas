@@ -76,12 +76,13 @@ class CheckoutPage extends Component
                 return $order;
             });
 
+            // CORREÇÃO: Toda a lógica do Mercado Pago está aqui, como deveria.
             MercadoPagoConfig::setAccessToken(config('services.mercadopago.token'));
             $client = new PaymentClient();
 
-            // CORREÇÃO: Lógica para determinar a URL do Webhook
+            // Lógica para determinar a URL correta do Webhook
             $notificationUrl = route('payment.webhook');
-            if (config('app.env') === 'local' && config('services.mercadopago.ngrok_url')) {
+            if (app()->isLocal() && config('services.mercadopago.ngrok_url')) {
                 $notificationUrl = config('services.mercadopago.ngrok_url') . '/webhook';
             }
 
@@ -113,7 +114,6 @@ class CheckoutPage extends Component
             ]);
 
             session()->forget(['checkout_raffle_id', 'checkout_tickets']);
-
             return $this->redirect(route('my.orders.show', $order), navigate: true);
 
         } catch (MPApiException $e) {
@@ -126,8 +126,6 @@ class CheckoutPage extends Component
         } catch (\Exception $e) {
             Log::error("General Error during order creation: " . $e->getMessage());
             session()->flash('error', 'Erro ao criar pedido: ' . $e->getMessage());
-            if ($order) { /* Lógica de reversão se necessário */
-            }
             return $this->redirect(route('raffle.show', ['raffle' => $this->raffle->id]), navigate: true);
         }
     }
