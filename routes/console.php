@@ -20,6 +20,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 
-// 👇👇👇 A CORREÇÃO ESTÁ AQUI 👇👇👇
-// Adicione este bloco para agendar o seu comando.
+
+// Bloco para agendar o seu comando.
 Schedule::command('tickets:cleanup')->everyMinute();
+Schedule::command('tickets:release-expired')->everyMinute();
