@@ -7,6 +7,8 @@ use App\Models\Raffle;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use MercadoPago\Client\Payment\PaymentClient;
+use MercadoPago\MercadoPagoConfig;
 
 class CheckoutPage extends Component
 {
@@ -42,6 +44,7 @@ class CheckoutPage extends Component
         }
 
         try {
+            // A transação do DB agora retorna o pedido criado
             $order = DB::transaction(function () {
                 $ticketsToReserve = Ticket::where('raffle_id', $this->raffle->id)
                     ->whereIn('number', $this->ticketNumbers)
@@ -49,7 +52,7 @@ class CheckoutPage extends Component
                     ->lockForUpdate()->get();
 
                 if ($ticketsToReserve->count() !== $this->ticketCount) {
-                    throw new \Exception("Uma ou mais cotas selecionadas não estão mais disponíveis. Por favor, tente novamente.");
+                    throw new \Exception("Uma ou mais cotas selecionadas não estão mais disponíveis.");
                 }
 
                 $order = Order::create([
@@ -58,9 +61,6 @@ class CheckoutPage extends Component
                     'total_amount' => $this->totalAmount,
                     'status' => 'pending',
                     'ticket_quantity' => $this->ticketCount,
-
-                    // 👇👇👇 A CORREÇÃO FINAL ESTÁ AQUI 👇👇👇
-                    // Define que o pedido expira em 15 minutos a partir de agora.
                     'expires_at' => now()->addMinutes(15),
                 ]);
 
@@ -73,10 +73,44 @@ class CheckoutPage extends Component
                 return $order;
             });
 
+            // --- INÍCIO DA INTEGRAÇÃO COM A API DO MERCADO PAGO ---
+
+            // 1. Configura a SDK com seu Access Token do arquivo .env
+            MercadoPagoConfig::setAccessToken(config('services.mercadopago.token'));
+
+            // 2. Cria a requisição de pagamento
+            $client = new PaymentClient();
+            $paymentData = [
+                "transaction_amount" => $order->total_amount,
+                "description" => "Pagamento para a rifa: " . $order->raffle->title,
+                "payment_method_id" => "pix",
+                "payer" => [
+                    "email" => auth()->user()->email,
+                    "first_name" => auth()->user()->name,
+                ],
+                // URL que o Mercado Pago vai chamar para te notificar sobre o status do pagamento
+                "notification_url" => route('payment.webhook')
+            ];
+
+            // 3. Envia a requisição para a API do Mercado Pago
+            $payment = $client->create($paymentData);
+
+            // 4. Salva os dados importantes do PIX no seu banco de dados
+            $order->update([
+                'transaction_id' => $payment->id, // ID da transação no Mercado Pago
+                'payment_gateway' => 'mercadopago',
+                'payment_details' => json_encode([ // Salva como JSON para flexibilidade
+                    'qr_code_base64' => $payment->point_of_interaction->transaction_data->qr_code_base64,
+                    'qr_code' => $payment->point_of_interaction->transaction_data->qr_code,
+                ])
+            ]);
+
+            // --- FIM DA INTEGRAÇÃO ---
+
             session()->forget(['checkout_raffle_id', 'checkout_tickets']);
 
-            session()->flash('success', 'Seu pedido foi criado com sucesso! Você pode acompanhá-lo em "Meus Pedidos".');
-            return $this->redirect(route('my.orders'), navigate: true);
+            // Redireciona o usuário para a página do pedido, onde ele verá o QR Code
+            return $this->redirect(route('my.orders.show', $order), navigate: true);
 
         } catch (\Exception $e) {
             session()->flash('error', 'Erro ao criar pedido: ' . $e->getMessage());

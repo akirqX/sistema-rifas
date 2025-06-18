@@ -15,17 +15,21 @@ class Index extends Component
 {
     use WithPagination, WithFileUploads;
 
+    // Propriedades para o modal de Criar/Editar
     public bool $showModal = false;
     public ?Raffle $editingRaffle = null;
-
-    // --- PADRONIZAÇÃO DAS PROPRIEDADES ---
     public string $title = '';
     public string $description = '';
     public ?float $price = null;
     public ?int $total_numbers = null;
     public $photo = null;
 
-    // --- Propriedades para as estatísticas ---
+    // 👇👇👇 A CORREÇÃO ESTÁ AQUI. Adicionando as propriedades que faltavam 👇👇👇
+    public bool $showDrawModal = false;
+    public ?Raffle $raffleToDraw = null;
+    public ?int $winner_ticket_number = null;
+
+    // Propriedades de estatísticas
     public float $totalRevenue = 0;
     public int $totalOrders = 0;
     public int $totalTicketsSold = 0;
@@ -34,7 +38,6 @@ class Index extends Component
 
     protected function rules(): array
     {
-        // --- REGRAS APONTANDO PARA AS PROPRIEDADES CORRETAS ---
         $rules = [
             'title' => 'required|string|min:5',
             'description' => 'required|string',
@@ -95,7 +98,6 @@ class Index extends Component
         $this->editingRaffle = $raffle;
         $this->title = $raffle->title;
         $this->description = $raffle->description;
-        // --- CORREÇÃO: Buscando os valores corretos do banco ---
         $this->price = $raffle->price;
         $this->total_numbers = $raffle->total_numbers;
         $this->photo = null;
@@ -112,7 +114,6 @@ class Index extends Component
         $this->validate();
         try {
             DB::transaction(function () {
-                // --- CORREÇÃO: Usando as chaves corretas para salvar no banco ---
                 $data = [
                     'title' => $this->title,
                     'description' => $this->description,
@@ -150,6 +151,67 @@ class Index extends Component
         }
     }
 
+    public function showDrawModal(Raffle $raffle)
+    {
+        $this->raffleToDraw = $raffle;
+        $this->winner_ticket_number = null;
+        $this->showDrawModal = true;
+    }
+
+    public function closeDrawModal()
+    {
+        $this->showDrawModal = false;
+        $this->raffleToDraw = null;
+    }
+
+    public function setWinner()
+    {
+        $this->validate([
+            'winner_ticket_number' => 'required|integer|min:1'
+        ]);
+
+        if (!$this->raffleToDraw) {
+            session()->flash('error', 'Nenhuma rifa selecionada para o sorteio.');
+            return;
+        }
+
+        $winningTicket = $this->raffleToDraw->tickets()
+            ->where('number', $this->winner_ticket_number)
+            ->first();
+
+        if (!$winningTicket) {
+            $this->addError('winner_ticket_number', 'Este número de cota não existe nesta rifa.');
+            return;
+        }
+        if ($winningTicket->status !== 'paid') {
+            $this->addError('winner_ticket_number', 'Esta cota não foi paga e não pode ser premiada.');
+            return;
+        }
+
+        $this->raffleToDraw->update([
+            'status' => 'finished',
+            'winner_ticket_id' => $winningTicket->id,
+            'drawn_at' => now(),
+        ]);
+
+        session()->flash('success', "Sorteio finalizado! A cota vencedora é #{$winningTicket->number}.");
+        $this->closeDrawModal();
+        $this->calculateStats();
+    }
+
+    public function performRandomDraw(Raffle $raffle)
+    {
+        $paidTickets = $raffle->tickets()->where('status', 'paid')->get();
+        if ($paidTickets->isEmpty()) {
+            session()->flash('error', 'Não é possível sortear uma rifa sem nenhuma cota paga.');
+            return;
+        }
+        $winningTicket = $paidTickets->random();
+        $raffle->update(['status' => 'finished', 'winner_ticket_id' => $winningTicket->id, 'drawn_at' => now()]);
+        session()->flash('success', "Sorteio realizado! A cota vencedora é #{$winningTicket->number}.");
+        $this->calculateStats();
+    }
+
     public function activateRaffle(Raffle $raffle): void
     {
         if ($raffle->status === 'pending') {
@@ -172,25 +234,9 @@ class Index extends Component
         $this->prepareSalesChart();
     }
 
-    public function performDraw(Raffle $raffle): void
-    {
-        $paidTickets = $raffle->tickets()->where('status', 'paid')->get();
-        if ($paidTickets->isEmpty()) {
-            session()->flash('error', 'Não é possível sortear uma rifa sem nenhuma cota paga.');
-            return;
-        }
-        $winningTicket = $paidTickets->random();
-        $raffle->update(['status' => 'finished', 'winner_ticket_id' => $winningTicket->id, 'drawn_at' => now()]);
-        session()->flash('success', "Sorteio realizado! A cota vencedora é #{$winningTicket->number}.");
-        $this->calculateStats();
-        $this->prepareSalesChart();
-    }
-
     public function render()
     {
         $raffles = Raffle::with('winner.user')->latest()->paginate(10);
-        return view('livewire.admin.raffles.index', [
-            'raffles' => $raffles,
-        ])->layout('layouts.app');
+        return view('livewire.admin.raffles.index', ['raffles' => $raffles])->layout('layouts.app');
     }
 }

@@ -8,12 +8,10 @@ use Livewire\Component;
 class OrderShowPage extends Component
 {
     // A propriedade pública para armazenar o pedido.
-    // O Livewire vai injetar o objeto Order aqui automaticamente a partir da rota.
     public Order $order;
+    public ?array $pixData = null;
 
-    // O método mount não é estritamente necessário para inicializar a propriedade
-    // quando usamos o route-model binding do Livewire, mas é bom para verificações
-    // de segurança e para carregar relações.
+    // O método mount é o ÚNICO lugar onde a inicialização deve acontecer.
     public function mount(Order $order)
     {
         // Garante que o usuário logado só pode ver seus próprios pedidos.
@@ -21,8 +19,12 @@ class OrderShowPage extends Component
             abort(403, 'Acesso não autorizado.');
         }
 
-        // Carrega as relações para otimizar a view.
+        // Carrega as relações e prepara os dados.
         $this->order = $order->load('raffle.media', 'tickets');
+
+        if (!empty($this->order->payment_details)) {
+            $this->pixData = json_decode($this->order->payment_details, true);
+        }
     }
 
     // O método render simplesmente renderiza a view.

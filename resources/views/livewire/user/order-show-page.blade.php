@@ -9,20 +9,33 @@
             </div>
 
             <div class="max-w-4xl mx-auto">
-                {{-- Bloco de Pagamento (Mockup) --}}
+                {{-- Bloco de Pagamento --}}
                 <div class="bg-bg-secondary p-8 rounded-2xl border border-border shadow-2xl mb-8">
                     <h3 class="font-heading text-2xl text-center text-white mb-4">
                         Status: <span class="text-primary-light">{{ ucfirst($order->status) }}</span>
                     </h3>
 
-                    @if($order->status == 'pending')
+                    @if($order->status == 'pending' && $pixData)
                         <div class="text-center">
                             <p class="text-text-muted mb-4">Seu pedido expira em: <strong class="text-accent">{{ $order->expires_at->diffForHumans() }}</strong></p>
+
                             <div class="bg-bg-tertiary p-6 rounded-lg">
                                 <h4 class="text-lg font-bold text-white">Pague com Pix para confirmar suas cotas</h4>
-                                <p class="text-text-muted mt-2 mb-4">(Mockup) Aqui será exibido o QR Code e o código Copia e Cola.</p>
-                                <div class="w-48 h-48 bg-white mx-auto rounded-lg flex items-center justify-center text-black font-bold">
-                                    QR CODE
+                                <p class="text-text-muted mt-2 mb-4">Escaneie o QR Code abaixo com o app do seu banco.</p>
+
+                                {{-- Exibindo o QR Code Real --}}
+                                <div class="w-56 h-56 bg-white mx-auto rounded-lg flex items-center justify-center p-2">
+                                    <img src="data:image/png;base64,{{ $pixData['qr_code_base64'] }}" alt="QR Code Pix">
+                                </div>
+
+                                <p class="text-text-muted mt-6 mb-2">Ou use o código Copia e Cola:</p>
+
+                                {{-- Exibindo o Código Copia e Cola Real com Botão --}}
+                                <div class="relative">
+                                    <input type="text" readonly value="{{ $pixData['qr_code'] }}" id="pix-code" class="w-full bg-bg-primary border border-border rounded-lg p-3 text-text-muted text-sm pr-10">
+                                    <button onclick="copyToClipboard()" class="absolute top-1/2 right-2 -translate-y-1/2 text-text-muted hover:text-white" title="Copiar Código">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -67,4 +80,26 @@
             </div>
         </div>
     </section>
+
+    @push('scripts')
+    <script>
+        function copyToClipboard() {
+            const input = document.getElementById('pix-code');
+            input.select();
+            // Para compatibilidade com dispositivos móveis
+            input.setSelectionRange(0, 99999);
+
+            try {
+                // Tenta usar a API de Clipboard moderna
+                navigator.clipboard.writeText(input.value);
+            } catch (err) {
+                // Fallback para o método antigo
+                document.execCommand('copy');
+            }
+
+            // Feedback visual (pode ser trocado por um toast)
+            alert('Código PIX copiado!');
+        }
+    </script>
+    @endpush
 </div>
