@@ -3,8 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 // Imports de Controllers
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController; // Importante para a rota de logout
 use App\Http\Controllers\PaymentWebhookController;
 
 // Imports de Componentes Livewire
@@ -17,9 +16,6 @@ use App\Livewire\User\MyOrders;
 use App\Livewire\User\MyTickets;
 use App\Livewire\User\OrderShowPage;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
-use App\Livewire\Admin\Raffles\Index as AdminRafflesIndex;
-use App\Livewire\Admin\Raffles\ManageTickets as AdminManageTickets;
-use App\Livewire\Admin\Skins\Index as AdminSkinsIndex;
 use App\Livewire\Skins\IndexPage;
 use App\Livewire\Skins\ShowPage;
 
@@ -60,21 +56,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', ProfileEditPage::class)->name('profile.edit');
 
     // --- A SOLUÇÃO ESTÁ AQUI ---
-    // Definimos manualmente a rota de logout para garantir que ela exista.
+    // Definimos manualmente a rota de logout para garantir que ela exista,
+    // não importa o que aconteça no arquivo auth.php.
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
 
 /*
 |--------------------------------------------------------------------------
-| Rotas de Administrador
+| Rota do Painel de Administrador Unificado
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
-    Route::get('/rifas', AdminRafflesIndex::class)->name('raffles.index');
-    Route::get('/rifa/{raffle}/cotas', AdminManageTickets::class)->name('raffles.tickets');
-    Route::get('/skins', AdminSkinsIndex::class)->name('skins.index');
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin', AdminDashboard::class)->name('admin.dashboard');
 });
 
 

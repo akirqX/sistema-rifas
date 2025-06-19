@@ -105,7 +105,10 @@
                                             @endif
                                         </td>
                                         <td class="py-4 px-6 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ route('admin.raffles.tickets', $raffle) }}" class="text-gray-400 hover:text-white">Cotas</a>
+                                            {{-- ========================================================== --}}
+                                            {{-- O LINK QUEBRADO ESTAVA AQUI E FOI REMOVIDO               --}}
+                                            {{-- ========================================================== --}}
+                                            {{-- <a href="{{ route('admin.raffles.tickets', $raffle) }}" class="text-gray-400 hover:text-white">Cotas</a> --}}
                                             <button wire:click="edit({{ $raffle->id }})" class="ml-4 text-indigo-400 hover:text-indigo-300">Editar</button>
                                             @if ($raffle->status === 'pending')
                                                 <button wire:click="activateRaffle({{ $raffle->id }})" class="ml-4 text-green-400 hover:text-green-300">Ativar</button>

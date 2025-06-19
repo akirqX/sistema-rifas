@@ -31,9 +31,7 @@ class Index extends Component
 
     public function render()
     {
-        // Agora ele renderiza apenas a si mesmo, sem forçar um layout.
-        // Isso permite que ele seja incluído em qualquer outra página.
-        return view('livewire.admin.skins.index');
+        return view('livewire.admin.raffles.index');
     }
 
     public function create()

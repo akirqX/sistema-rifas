@@ -20,13 +20,9 @@
                         Rifas
                     </x-nav-link>
 
-                    {{-- ========================================================== --}}
-                    {{-- BLOCO ADICIONADO PARA O ARSENAL DE SKINS               --}}
-                    {{-- ========================================================== --}}
-                    <x-nav-link :href="route('skins.index')" :active="request()->routeIs('skins.index')">
+                    <x-nav-link :href="route('skins.index')" :active="request()->routeIs('skins.index') || request()->routeIs('skins.show')">
                         Arsenal
                     </x-nav-link>
-                    {{-- ========================================================== --}}
                 </div>
             </div>
 
@@ -46,11 +42,16 @@
                         </x-slot>
 
                         <x-slot name="content">
+                            {{-- ========================================================== --}}
+                            {{-- BLOCO ADICIONADO PARA O PAINEL ADMIN                     --}}
+                            {{-- ========================================================== --}}
                             @if(Auth::user()->is_admin)
-                                <x-dropdown-link :href="route('dashboard')">
+                                <x-dropdown-link :href="route('admin.dashboard')">
                                     Painel Admin
                                 </x-dropdown-link>
                             @endif
+                            {{-- ========================================================== --}}
+
                             <x-dropdown-link :href="route('my.orders')">
                                 Meus Pedidos
                             </x-dropdown-link>
