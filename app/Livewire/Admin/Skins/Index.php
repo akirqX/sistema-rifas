@@ -15,13 +15,13 @@ class Index extends Component
 
     // Propriedades para o formulário
     public $name, $description, $wear, $price, $steam_inspect_link, $image;
-    public $productId;
+    public $productId; // Para edição futura
 
+    // Removi a validação da imagem daqui para ser condicional
     protected $rules = [
         'name' => 'required|string|max:255',
         'wear' => 'required|string',
         'price' => 'required|numeric|min:0',
-        'image' => 'required|image|max:1024', // 1MB Max
         'steam_inspect_link' => 'nullable|url'
     ];
 
@@ -32,7 +32,10 @@ class Index extends Component
 
     public function render()
     {
-        return view('livewire.admin.skins.index')->layout('layouts.admin'); // Assumindo que você tem um layout de admin
+        // <-- A ÚNICA CORREÇÃO NECESSÁRIA!
+        // Apontando para o layout correto que existe no seu projeto.
+        return view('livewire.admin.skins.index')
+            ->layout('layouts.app');
     }
 
     public function create()
@@ -43,7 +46,10 @@ class Index extends Component
 
     public function store()
     {
-        $this->validate();
+        // Adicionando a validação da imagem apenas na criação
+        $this->validate(array_merge($this->rules, [
+            'image' => 'required|image|max:1024', // 1MB Max
+        ]));
 
         $product = Product::create([
             'name' => $this->name,
@@ -66,12 +72,14 @@ class Index extends Component
         $this->mount(); // Recarrega a lista
     }
 
-    // (Aqui você adicionaria os métodos edit(), update() e delete())
-
     private function resetForm()
     {
         $this->name = '';
         $this->description = '';
-        // ... resetar todas as propriedades
+        $this->wear = '';
+        $this->price = '';
+        $this->steam_inspect_link = '';
+        $this->image = null;
+        $this->productId = null;
     }
 }

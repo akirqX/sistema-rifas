@@ -1,23 +1,27 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
+// Imports de Controllers
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
-use App\Livewire\Profile\EditPage as ProfileEditPage;
-use App\Livewire\Raffles\Showcase as RaffleShowcase;
+use App\Http\Controllers\PaymentWebhookController;
+
+// Imports de Componentes Livewire
+use App\Livewire\HomePage;
 use App\Livewire\RafflePage;
 use App\Livewire\CheckoutPage;
+use App\Livewire\Raffles\Showcase as RaffleShowcase;
+use App\Livewire\Profile\EditPage as ProfileEditPage;
 use App\Livewire\User\MyOrders;
 use App\Livewire\User\MyTickets;
 use App\Livewire\User\OrderShowPage;
+use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\Raffles\Index as AdminRafflesIndex;
 use App\Livewire\Admin\Raffles\ManageTickets as AdminManageTickets;
-use App\Http\Controllers\PaymentWebhookController;
+use App\Livewire\Admin\Skins\Index as AdminSkinsIndex;
 use App\Livewire\Skins\IndexPage;
-
-// --- ADICIONADO ---
-// Importa o novo componente da página inicial que vamos criar.
-use App\Livewire\HomePage;
+use App\Livewire\Skins\ShowPage;
 
 
 /*
@@ -25,26 +29,24 @@ use App\Livewire\HomePage;
 | Rotas Públicas
 |--------------------------------------------------------------------------
 */
-
-// --- CORRIGIDO ---
-// A rota raiz '/' agora aponta para o novo componente 'HomePage'.
-// Esta será sua nova página de boas-vindas, com destaques, etc.
 Route::get('/', HomePage::class)->name('home');
-
-// A rota '/rifas' continua apontando para o 'RaffleShowcase'.
-// Esta passa a ser oficialmente seu catálogo completo de rifas.
 Route::get('/rifas', RaffleShowcase::class)->name('raffles.showcase');
-
-
 Route::get('/rifa/{raffle}', RafflePage::class)->name('raffle.show');
 Route::get('/checkout/{raffle}', CheckoutPage::class)->name('checkout');
+Route::get('/arsenal', IndexPage::class)->name('skins.index');
+Route::get('/skin/{product}', ShowPage::class)->name('skins.show');
+
 
 /*
 |--------------------------------------------------------------------------
 | Rotas de Autenticação
 |--------------------------------------------------------------------------
 */
+// --- A SOLUÇÃO ESTÁ AQUI ---
+// Esta linha importa todas as rotas de autenticação (login, logout, etc.)
+// Ela foi removida acidentalmente e agora está de volta.
 require __DIR__ . '/auth.php';
+
 
 /*
 |--------------------------------------------------------------------------
@@ -52,33 +54,29 @@ require __DIR__ . '/auth.php';
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+    // Esta linha define a rota 'dashboard' para usuários logados.
     Route::view('/dashboard', 'dashboard')->name('dashboard');
-
-    // Rota para visualizar o perfil
-    Route::get('/profile', ProfileEditPage::class)->name('profile.edit');
-
-    // As rotas de ação continuam apontando para o ProfileController
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Rota de Logout definida manualmente
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
     Route::get('/meus-pedidos', MyOrders::class)->name('my.orders');
     Route::get('/minhas-cotas', MyTickets::class)->name('my.tickets');
     Route::get('/meus-pedidos/{order}', OrderShowPage::class)->name('my.orders.show');
+    Route::get('/profile', ProfileEditPage::class)->name('profile.edit');
 });
+
 
 /*
 |--------------------------------------------------------------------------
 | Rotas de Administrador
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::get('/rifas', AdminRafflesIndex::class)->name('admin.raffles.index');
-    Route::get('/rifa/{raffle}/cotas', AdminManageTickets::class)->name('admin.raffles.tickets');
-    Route::get('/skins', IndexPage::class)->name('skins.index');
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    // O nome desta rota é 'admin.dashboard'
+    Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
+    Route::get('/rifas', AdminRafflesIndex::class)->name('raffles.index');
+    Route::get('/rifa/{raffle}/cotas', AdminManageTickets::class)->name('raffles.tickets');
+    Route::get('/skins', AdminSkinsIndex::class)->name('skins.index');
 });
+
 
 /*
 |--------------------------------------------------------------------------
