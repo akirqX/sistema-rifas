@@ -41,12 +41,11 @@ class ManageTickets extends Component
                     });
             });
         }
-
         if ($this->statusFilter) {
             $ticketsQuery->where('status', $this->statusFilter);
         }
 
-        $tickets = $ticketsQuery->orderBy('number', 'asc')->paginate(50);
+        $tickets = $ticketsQuery->orderBy('number', 'asc')->paginate(100);
 
         return view('livewire.admin.raffles.manage-tickets', [
             'tickets' => $tickets,

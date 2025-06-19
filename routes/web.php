@@ -1,11 +1,12 @@
 <?php
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Imports de Controllers
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\ProfileController;
+// Imports de Controllers (Apenas os que realmente existem)
 use App\Http\Controllers\PaymentWebhookController;
+use App\Http\Controllers\ProfileController;
 
 // Imports de Componentes Livewire
 use App\Livewire\HomePage;
@@ -17,9 +18,9 @@ use App\Livewire\User\MyOrders;
 use App\Livewire\User\MyTickets;
 use App\Livewire\User\OrderShowPage;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
+use App\Livewire\Admin\Raffles\ManageTickets;
 use App\Livewire\Skins\IndexPage;
 use App\Livewire\Skins\ShowPage;
-use App\Livewire\Admin\Raffles\ManageTickets; // Adicione este 'use' no topo
 
 /*
 |--------------------------------------------------------------------------
@@ -39,6 +40,7 @@ Route::get('/skin/{product}', ShowPage::class)->name('skins.show');
 | Rotas de Autenticação
 |--------------------------------------------------------------------------
 */
+// Carrega as rotas de login, registro, etc., do arquivo auth.php
 require __DIR__ . '/auth.php';
 
 
@@ -48,29 +50,32 @@ require __DIR__ . '/auth.php';
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
-    // --- A SOLUÇÃO ESTÁ AQUI ---
-    // Estas linhas definem as rotas do painel do usuário.
-    // Elas haviam sido removidas acidentalmente.
     Route::view('/dashboard', 'dashboard')->name('dashboard');
     Route::get('/meus-pedidos', MyOrders::class)->name('my.orders');
     Route::get('/minhas-cotas', MyTickets::class)->name('my.tickets');
     Route::get('/meus-pedidos/{order}', OrderShowPage::class)->name('my.orders.show');
     Route::get('/profile', ProfileEditPage::class)->name('profile.edit');
 
-    // Definição manual da rota de logout para garantir que ela exista.
-    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
+    // --- A SOLUÇÃO FINAL ESTÁ AQUI ---
+    // Definimos a rota de logout usando uma função direta (Closure).
+    // Isso não depende de nenhum controller que possa estar faltando.
+    Route::post('logout', function (Request $request) {
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/');
+    })->name('logout');
 });
 
 
 /*
 |--------------------------------------------------------------------------
-| Rota do Painel de Administrador Unificado
+| Rotas de Administrador
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'admin'])->group(function () {
-    // O nome desta rota é 'admin.dashboard'
-    Route::get('/admin', AdminDashboard::class)->name('admin.dashboard');
-    Route::get('/admin/raffle/{raffle}/tickets', ManageTickets::class)->name('admin.raffles.tickets');
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', AdminDashboard::class)->name('dashboard');
+    Route::get('/raffle/{raffle}/tickets', ManageTickets::class)->name('raffles.tickets');
 });
 
 

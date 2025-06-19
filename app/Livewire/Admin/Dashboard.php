@@ -30,7 +30,8 @@ class Dashboard extends Component
     public ?Raffle $raffleToDraw = null;
     public ?int $winner_ticket_number = null;
 
-    // Propriedades de Cotas
+    // --- A SOLUÇÃO ESTÁ AQUI ---
+    // Propriedades de Cotas, que estavam faltando
     public bool $showTicketsModal = false;
     public $ticketsForModal = [];
     public ?Raffle $raffleForTickets = null;
@@ -54,7 +55,7 @@ class Dashboard extends Component
     public $searchRaffles = '';
     public $searchSkins = '';
 
-    // Seus métodos originais, restaurados e completos
+    // MÉTODOS ORIGINAIS (Preservados)
     public function mount()
     {
         $this->calculateStats();
@@ -70,7 +71,10 @@ class Dashboard extends Component
     public function prepareSalesChart()
     { /* ... seu código original ... */
     }
-    protected function rules(): array
+    protected function rulesForRaffle(): array
+    { /* ... seu código original ... */
+    }
+    protected function rulesForSkin(): array
     { /* ... seu código original ... */
     }
     public function saveRaffle()
@@ -92,17 +96,13 @@ class Dashboard extends Component
     { /* ... sua lógica de saveSkin ... */
     }
     private function resetRaffleForm()
-    {
-        $this->editingRaffle = null;
-        $this->title = ''; /* ... etc ... */
+    { /* ... */
     }
     private function resetSkinForm()
-    {
-        $this->editingProduct = null;
-        $this->skin_name = ''; /* ... etc ... */
+    { /* ... */
     }
 
-    // --- MÉTODOS RENOMEADOS PARA CORRIGIR O ERRO DO CONSOLE ---
+    // MÉTODOS PARA ABRIR MODAIS (Com nomes corrigidos)
     public function openRaffleModal()
     {
         $this->resetValidation();

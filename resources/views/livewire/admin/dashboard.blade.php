@@ -1,10 +1,14 @@
 <div class="container mx-auto px-4 py-8 sm:py-12">
-    {{-- Mensagens de Sucesso e Erro --}}
-    @if (session()->has('success')) <div class="p-4 mb-6 text-sm text-green-300 border border-green-500/30 rounded-lg bg-green-500/20">{{ session('success') }}</div> @endif
-    @if (session()->has('error')) <div class="p-4 mb-6 text-sm text-red-300 border border-red-500/30 rounded-lg bg-red-500/20">{{ session('error') }}</div> @endif
+    {{-- Bloco para exibir mensagens de sucesso ou erro --}}
+    @if (session()->has('success'))
+        <div class="p-4 mb-6 text-sm text-green-300 border border-green-500/30 rounded-lg bg-green-500/20">{{ session('success') }}</div>
+    @endif
+    @if (session()->has('error'))
+         <div class="p-4 mb-6 text-sm text-red-300 border border-red-500/30 rounded-lg bg-red-500/20">{{ session('error') }}</div>
+    @endif
 
     <div class="space-y-8">
-        {{-- SEU PAINEL DE ESTATÍSTICAS E GRÁFICOS --}}
+        {{-- PAINEL DE ESTATÍSTICAS E GRÁFICOS --}}
         <div>
             <h1 class="text-3xl font-bold text-white">Painel de Administrador</h1>
             <p class="text-text-muted mt-1">Visão geral e gerenciamento completo do sistema.</p>
@@ -26,7 +30,7 @@
             </div>
         </div>
 
-        {{-- GERENCIAMENTO DE RIFAS (COM TODOS OS BOTÕES CORRIGIDOS) --}}
+        {{-- GERENCIAMENTO DE RIFAS (COMPLETO E CORRIGIDO) --}}
         <div class="bg-panel-dark border border-border-subtle rounded-2xl shadow-lg overflow-hidden">
             <div class="p-6">
                 <h3 class="text-2xl font-bold text-white mb-4">Gerenciamento de Rifas</h3>
@@ -51,14 +55,14 @@
                                     <td class="py-4 px-6 whitespace-nowrap text-sm text-text-muted">@if($raffle->winnerTicket) Cota: <strong>{{ str_pad($raffle->winnerTicket->number, 4, '0', STR_PAD_LEFT) }}</strong><div class="text-xs">{{ $raffle->winnerTicket->user->name ?? 'Usuário' }}</div>@else - @endif</td>
                                     <td class="py-4 px-6 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex items-center justify-end space-x-3">
-                                            <button wire:click="openTicketsModal({{ $raffle->id }})" class="text-gray-400 hover:text-white">Cotas</button>
-                                            <button wire:click="editRaffle({{ $raffle->id }})" class="text-indigo-400 hover:text-indigo-300">Editar</button>
-                                            @if ($raffle->status === 'pending')<button wire:click="activateRaffle({{ $raffle->id }})" class="text-green-400 hover:text-green-300">Ativar</button>@endif
+                                            <a href="{{ route('admin.raffles.tickets', $raffle) }}" class="text-gray-400 hover:text-white" title="Gerenciar Cotas">Cotas</a>
+                                            <button wire:click="editRaffle({{ $raffle->id }})" class="text-indigo-400 hover:text-indigo-300" title="Editar">Editar</button>
+                                            @if ($raffle->status === 'pending')<button wire:click="activateRaffle({{ $raffle->id }})" class="text-green-400 hover:text-green-300" title="Ativar">Ativar</button>@endif
                                             @if ($raffle->status === 'active')
-                                                <button wire:click="openDrawModal({{ $raffle->id }})" class="text-blue-400 hover:text-blue-300">Sorteio Manual</button>
-                                                <button wire:click="performRandomDraw({{ $raffle->id }})" wire:confirm="Tem certeza que deseja realizar o sorteio aleatório AGORA? Esta ação é irreversível." class="text-purple-400 hover:text-purple-300">Sorteio Aleatório</button>
+                                                <button wire:click="openDrawModal({{ $raffle->id }})" class="text-blue-400 hover:text-blue-300" title="Sorteio Manual">Sortear</button>
+                                                <button wire:click="performRandomDraw({{ $raffle->id }})" wire:confirm="Tem certeza que deseja realizar o sorteio aleatório AGORA? Esta ação é irreversível." class="text-purple-400 hover:text-purple-300" title="Sorteio Aleatório">Aleatório</button>
                                             @endif
-                                            @if ($raffle->status !== 'finished' && $raffle->status !== 'cancelled')<button wire:click="cancelRaffle({{ $raffle->id }})" wire:confirm="Tem certeza que deseja cancelar esta rifa?" class="text-red-400 hover:text-red-300">Cancelar</button>@endif
+                                            @if ($raffle->status !== 'finished' && $raffle->status !== 'cancelled')<button wire:click="cancelRaffle({{ $raffle->id }})" wire:confirm="Tem certeza que deseja cancelar esta rifa?" class="text-red-400 hover:text-red-300" title="Cancelar">Cancelar</button>@endif
                                         </div>
                                     </td>
                                 </tr>
@@ -108,9 +112,13 @@
         </div>
     </div>
 
-    {{-- MODAIS COMPLETOS E FUNCIONAIS --}}
+    {{-- ========================================================== --}}
+    {{-- MODAIS COMPLETOS E FUNCIONAIS                            --}}
+    {{-- ========================================================== --}}
+
+    {{-- MODAL PARA CRIAR/EDITAR RIFA --}}
     @if ($showRaffleModal)
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data @click.self="$wire.set('showRaffleModal', false)" x-trap.noscroll="true">
             <div class="bg-panel-dark p-8 rounded-2xl w-full max-w-2xl border border-border-subtle max-h-screen overflow-y-auto">
                 <h2 class="text-2xl font-bold text-white mb-6">{{ $editingRaffle ? 'Editar Rifa' : 'Criar Nova Rifa' }}</h2>
                 <form wire:submit.prevent="saveRaffle" class="space-y-4">
@@ -121,13 +129,15 @@
                         <div><label for="total_numbers" class="form-label">Quantidade de Cotas</label><input type="number" id="total_numbers" wire:model.defer="total_numbers" class="form-input" @if($editingRaffle) disabled @endif>@if($editingRaffle) <span class="text-xs text-text-muted">A quantidade não pode ser alterada.</span> @endif @error('total_numbers') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror</div>
                     </div>
                     <div><label for="raffle_photo" class="form-label">Imagem da Rifa</label><input type="file" id="raffle_photo" wire:model="raffle_photo" class="form-input-file">@if ($raffle_photo) <img src="{{ $raffle_photo->temporaryUrl() }}" class="mt-4 h-32 w-auto rounded">@elseif($editingRaffle && $editingRaffle->getFirstMedia('raffles')) <img src="{{ $editingRaffle->getFirstMediaUrl('raffles') }}" class="mt-4 h-32 w-auto rounded" alt="Imagem atual">@endif @error('raffle_photo') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror</div>
-                    <div class="flex justify-end gap-4 pt-4"><button type="button" wire:click="$set('showRaffleModal', false)" class="btn-prodgio btn-secondary">Cancelar</button><button type="submit" class="btn-prodgio btn-primary">Salvar Rifa</button></div>
+                    <div class="flex justify-end gap-4 pt-4"><button type="button" @click="$wire.set('showRaffleModal', false)" class="btn-prodgio btn-secondary">Cancelar</button><button type="submit" class="btn-prodgio btn-primary">Salvar Rifa</button></div>
                 </form>
             </div>
         </div>
     @endif
+
+    {{-- MODAL PARA CRIAR/EDITAR SKIN --}}
     @if ($showSkinModal)
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data @click.self="$wire.set('showSkinModal', false)" x-trap.noscroll="true">
             <div class="bg-panel-dark p-8 rounded-2xl w-full max-w-2xl border border-border-subtle max-h-screen overflow-y-auto">
                 <h2 class="text-2xl font-bold text-white mb-6">{{ $editingProduct ? 'Editar Skin' : 'Adicionar Nova Skin' }}</h2>
                 <form wire:submit.prevent="saveSkin" class="space-y-4">
@@ -139,13 +149,15 @@
                     <div><label for="skin_description" class="form-label">Descrição</label><textarea id="skin_description" wire:model.defer="skin_description" rows="3" class="form-textarea"></textarea></div>
                     <div><label for="steam_inspect_link" class="form-label">Link de Inspeção (Opcional)</label><input type="url" id="steam_inspect_link" wire:model.defer="steam_inspect_link" class="form-input">@error('steam_inspect_link') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror</div>
                     <div><label for="skin_image" class="form-label">Imagem da Skin</label><input type="file" id="skin_image" wire:model="skin_image" class="form-input-file">@if ($skin_image) <img src="{{ $skin_image->temporaryUrl() }}" class="mt-4 h-32 w-auto rounded">@elseif($editingProduct && $editingProduct->getFirstMedia('product_images')) <img src="{{ $editingProduct->getFirstMediaUrl('product_images') }}" class="mt-4 h-32 w-auto rounded" alt="Imagem atual">@endif @error('skin_image') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror</div>
-                    <div class="flex justify-end gap-4 pt-4"><button type="button" wire:click="$set('showSkinModal', false)" class="btn-prodgio btn-secondary">Cancelar</button><button type="submit" class="btn-prodgio btn-primary">Salvar Skin</button></div>
+                    <div class="flex justify-end gap-4 pt-4"><button type="button" @click="$wire.set('showSkinModal', false)" class="btn-prodgio btn-secondary">Cancelar</button><button type="submit" class="btn-prodgio btn-primary">Salvar Skin</button></div>
                 </form>
             </div>
         </div>
     @endif
+
+    {{-- MODAL DE SORTEIO MANUAL --}}
     @if ($showDrawModal)
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data @click.self="$wire.set('showDrawModal', false)" x-trap.noscroll="true">
             <div class="bg-panel-dark p-8 rounded-2xl w-full max-w-md border border-border-subtle">
                 <h2 class="text-2xl font-bold text-white mb-6 text-center">Definir Ganhador Manualmente</h2>
                 <form wire:submit.prevent="setWinner" class="space-y-4">
@@ -155,36 +167,10 @@
                         @error('winner_ticket_number') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
                     <div class="mt-8 flex justify-end space-x-4">
-                        <button type="button" wire:click="$set('showDrawModal', false)" class="btn-prodgio btn-secondary">Cancelar</button>
+                        <button type="button" @click="$wire.set('showDrawModal', false)" class="btn-prodgio btn-secondary">Cancelar</button>
                         <button type="submit" class="btn-prodgio btn-primary">Confirmar Ganhador</button>
                     </div>
                 </form>
-            </div>
-        </div>
-    @endif
-    @if ($showTicketsModal)
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div class="bg-panel-dark p-8 rounded-2xl w-full max-w-4xl border border-border-subtle max-h-screen flex flex-col">
-                <div class="flex-shrink-0">
-                    <h2 class="text-2xl font-bold text-white mb-1">Cotas da Rifa</h2>
-                    <p class="text-text-muted mb-6">"{{ $raffleForTickets->title }}"</p>
-                </div>
-                <div class="flex-grow overflow-y-auto pr-4">
-                    <div class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 gap-2">
-                        @foreach ($ticketsForModal as $ticket)
-                            <div class="p-2 rounded text-center text-sm font-mono
-                                {{ $ticket->status === 'paid' ? 'bg-green-500/20 text-green-300' : '' }}
-                                {{ $ticket->status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' : '' }}
-                                {{ $ticket->status === 'available' ? 'bg-gray-700/50 text-gray-400' : '' }}">
-                                <p class="font-bold">{{ str_pad($ticket->number, 4, '0', STR_PAD_LEFT) }}</p>
-                                <p class="text-xs truncate">{{ $ticket->user->name ?? 'Disponível' }}</p>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-                <div class="flex-shrink-0 flex justify-end gap-4 pt-6">
-                    <button type="button" wire:click="$set('showTicketsModal', false)" class="btn-prodgio btn-secondary">Fechar</button>
-                </div>
             </div>
         </div>
     @endif

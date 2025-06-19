@@ -42,22 +42,21 @@
                         </x-slot>
 
                         <x-slot name="content">
-                            {{-- ========================================================== --}}
-                            {{-- BLOCO ADICIONADO PARA O PAINEL ADMIN                     --}}
-                            {{-- ========================================================== --}}
+                            {{-- Link do Painel Admin (visível apenas para admins) --}}
                             @if(Auth::user()->is_admin)
                                 <x-dropdown-link :href="route('admin.dashboard')">
                                     Painel Admin
                                 </x-dropdown-link>
                             @endif
-                            {{-- ========================================================== --}}
 
+                            {{-- Links de Usuário (visíveis para todos os logados) --}}
                             <x-dropdown-link :href="route('my.orders')">
                                 Meus Pedidos
                             </x-dropdown-link>
                             <x-dropdown-link :href="route('profile.edit')">
                                 Meu Perfil
                             </x-dropdown-link>
+
                             <!-- Authentication -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -104,16 +103,16 @@
         </div>
 
         <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
+        <div class="pt-4 pb-1 border-t border-gray-600">
             @auth
                 <div class="px-4">
-                    <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
+                    <div class="font-medium text-base text-gray-200">{{ Auth::user()->name }}</div>
                     <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
                 </div>
 
                 <div class="mt-3 space-y-1">
                     @if(Auth::user()->is_admin)
-                        <x-responsive-nav-link :href="route('dashboard')">
+                        <x-responsive-nav-link :href="route('admin.dashboard')">
                             Painel Admin
                         </x-responsive-nav-link>
                     @endif
