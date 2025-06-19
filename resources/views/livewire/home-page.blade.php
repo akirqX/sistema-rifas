@@ -85,6 +85,48 @@
         </div>
     </section>
 
+{{-- DENTRO DE resources/views/livewire/home-page.blade.php --}}
+
+    {{-- ... (código da seção de Rifas em Destaque) ... --}}
+    </section> {{-- Este é o final da seção "featured-raffles" --}}
+
+
+    {{-- ========================================================== --}}
+    {{-- COLE A NOVA SEÇÃO COMPLETA EXATAMENTE AQUI                 --}}
+    {{-- ========================================================== --}}
+    <section class="skins-cta-section py-20">
+        <div class="container mx-auto px-4">
+            <div class="bg-panel-dark border border-border-subtle rounded-lg p-10 flex flex-col md:flex-row items-center justify-between gap-10">
+
+                {{-- Coluna de Texto --}}
+                <div class="md:w-1/2 text-center md:text-left">
+                    <h2 class="text-3xl md:text-4xl font-extrabold text-white">
+                        Explore nosso <span class="text-highlight">Arsenal</span>
+                    </h2>
+                    <p class="mt-4 text-lg text-text-muted">
+                        Cansado de esperar pela sorte? Adquira as melhores skins de CS2 a pronta entrega. Itens selecionados e inspecionados, prontos para serem seus.
+                    </p>
+                    <a href="{{ route('skins.index') }}" class="btn-prodgio btn-primary mt-8 inline-block">
+                        Ver Skins Disponíveis
+                    </a>
+                </div>
+
+                {{-- Coluna Visual (Imagem Impactante) --}}
+                <div class="md:w-1/2 flex justify-center md:justify-end">
+                    {{-- Imagem de uma skin famosa e colorida para chamar atenção --}}
+                    <img src="https://community.akamai.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJlY20hPb6YL-Bl2hUu8Nzj7iT94-m3FfhrFc_Z27xI4-dJgE9Y1HX_lW2kO_v0cftuM_JmyRk7SWdgVXp1w/360fx360f"
+                         alt="CS2 Skins"
+                         class="max-w-xs md:max-w-sm transform transition-transform duration-500 hover:scale-110 hover:rotate-3">
+                </div>
+            </div>
+        </div>
+    </section>
+    {{-- ========================================================== --}}
+
+
+    <section class="how-it-works py-16 sm:py-20"> {{-- Este é o começo da próxima seção --}}
+        {{-- ... (resto do código da homepage) ... --}}
+
     {{-- ====================================================================== --}}
     {{-- 3. COMO FUNCIONA - REVISADA                                            --}}
     {{-- ====================================================================== --}}
