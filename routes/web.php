@@ -13,14 +13,29 @@ use App\Livewire\User\OrderShowPage;
 use App\Livewire\Admin\Raffles\Index as AdminRafflesIndex;
 use App\Livewire\Admin\Raffles\ManageTickets as AdminManageTickets;
 use App\Http\Controllers\PaymentWebhookController;
+use App\Livewire\Skins\IndexPage;
+
+// --- ADICIONADO ---
+// Importa o novo componente da página inicial que vamos criar.
+use App\Livewire\HomePage;
+
 
 /*
 |--------------------------------------------------------------------------
 | Rotas Públicas
 |--------------------------------------------------------------------------
 */
-Route::get('/', RaffleShowcase::class)->name('home');
+
+// --- CORRIGIDO ---
+// A rota raiz '/' agora aponta para o novo componente 'HomePage'.
+// Esta será sua nova página de boas-vindas, com destaques, etc.
+Route::get('/', HomePage::class)->name('home');
+
+// A rota '/rifas' continua apontando para o 'RaffleShowcase'.
+// Esta passa a ser oficialmente seu catálogo completo de rifas.
 Route::get('/rifas', RaffleShowcase::class)->name('raffles.showcase');
+
+
 Route::get('/rifa/{raffle}', RafflePage::class)->name('raffle.show');
 Route::get('/checkout/{raffle}', CheckoutPage::class)->name('checkout');
 
@@ -62,6 +77,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/rifas', AdminRafflesIndex::class)->name('admin.raffles.index');
     Route::get('/rifa/{raffle}/cotas', AdminManageTickets::class)->name('admin.raffles.tickets');
+    Route::get('/skins', IndexPage::class)->name('skins.index');
 });
 
 /*

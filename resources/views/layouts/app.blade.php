@@ -46,6 +46,9 @@
                                 <a href="{{ route('login') }}" class="navbar-cta"><span>Entrar</span></a>
                             @endauth
                         </div>
+                                    <div class="navbar-progress">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
                     </div>
                 </div>
             </nav>
@@ -76,7 +79,7 @@
 
         <main class="relative z-10">{{ $slot }}</main>
 
-        {{-- FOOTER MELHORADO RESTAURADO --}}
+        {{-- FOOTER MELHORADO --}}
         <footer class="footer relative z-10">
             <div class="container mx-auto px-4 py-16">
                 <div class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-8">

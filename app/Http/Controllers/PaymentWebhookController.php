@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\Product; // <-- 1. IMPORTAMOS O MODEL PRODUCT
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use MercadoPago\Client\Payment\PaymentClient;
@@ -31,10 +32,26 @@ class PaymentWebhookController extends Controller
 
                 if ($payment && $payment->status === 'approved') {
                     $order = Order::where('transaction_id', $payment->id)->where('status', 'pending')->first();
+
                     if ($order) {
                         $order->update(['status' => 'paid']);
-                        $order->tickets()->update(['status' => 'paid']);
-                        Log::info("SUCESSO: Pedido Real #{$order->id} foi pago e atualizado.");
+
+                        // --- 2. LÓGICA DE DECISÃO: É RIFA OU SKIN? ---
+                        if ($order->product_id) {
+                            // É um pedido de SKIN!
+                            $product = Product::find($order->product_id);
+                            if ($product) {
+                                $product->status = 'sold'; // Marca a skin como vendida
+                                $product->save();
+                                Log::info("SUCESSO (Skin): Pedido Real #{$order->id} pago. Skin #{$product->id} marcada como vendida.");
+                                // TODO: Disparar evento para notificar o admin para entregar a skin
+                                // event(new SkinSold($order));
+                            }
+                        } else {
+                            // É um pedido de RIFA (lógica original)
+                            $order->tickets()->update(['status' => 'paid']);
+                            Log::info("SUCESSO (Rifa): Pedido Real #{$order->id} foi pago e bilhetes atualizados.");
+                        }
                     }
                 }
             }
@@ -59,8 +76,22 @@ class PaymentWebhookController extends Controller
 
         if ($order) {
             $order->update(['status' => 'paid', 'transaction_id' => $testPaymentId]);
-            $order->tickets()->update(['status' => 'paid']);
-            Log::info("SUCESSO (Simulação): Pedido #{$order->id} foi pago e atualizado.");
+
+            // --- 3. LÓGICA DE DECISÃO REPLICADA PARA TESTES ---
+            if ($order->product_id) {
+                // É um pedido de SKIN!
+                $product = Product::find($order->product_id);
+                if ($product) {
+                    $product->status = 'sold';
+                    $product->save();
+                    Log::info("SUCESSO (Simulação de Skin): Pedido #{$order->id} pago. Skin #{$product->id} marcada como vendida.");
+                }
+            } else {
+                // É um pedido de RIFA
+                $order->tickets()->update(['status' => 'paid']);
+                Log::info("SUCESSO (Simulação de Rifa): Pedido #{$order->id} foi pago e bilhetes atualizados.");
+            }
+
         } else {
             Log::warning("Simulação de Webhook recebida, mas nenhum pedido pendente foi encontrado para testar.");
         }

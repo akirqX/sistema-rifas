@@ -1730,7 +1730,7 @@ body {
 }
 
 .footer-links a::before {
-    content: 'â†’';
+    content: '•';
     opacity: 0;
     transition: all 0.3s ease;
     color: var(--color-primary-light);
@@ -3694,28 +3694,36 @@ select:focus {
 
 .navbar-toggle {
     display: none;
-    /* Escondido por padrão no desktop */
     position: fixed;
-    /* Fixo na tela, independente do scroll */
     top: 1rem;
     right: 1.5rem;
     z-index: calc(var(--z-modal) + 10);
-    /* Z-index MUITO ALTO para garantir que fique sobre tudo */
-
-    /* Estilos visuais */
     flex-direction: column;
     gap: 0.35rem;
-    border: 1px solid var(--color-border);
     cursor: pointer;
     padding: var(--spacing-sm);
     border-radius: var(--radius-md);
     transition: transform 0.3s ease;
-    backdrop-filter: blur(5px);
+
+    /* 👇👇👇 A CORREÇÃO ESTÁ AQUI 👇👇👇 */
+    /* Removemos o fundo, a borda e o desfoque para um visual limpo */
+    background: none;
+    border: none;
+    backdrop-filter: none;
 }
 
 .navbar-toggle:hover {
     transform: scale(1.1);
 }
+
+/* Mostra o botão apenas em telas mobile */
+@media (max-width: 768px) {
+    .navbar-toggle {
+        display: flex;
+    }
+}
+
+/* ... (resto do seu CSS do menu, sem alterações) ... */
 
 /* Mostra o botão apenas em telas mobile */
 @media (max-width: 768px) {
@@ -3836,41 +3844,173 @@ select:focus {
     box-shadow: 0 10px 20px rgba(209, 62, 255, 0.2);
 }
 
-/* ===================================
-   MENU MOBILE FINAL: DROPDOWN COMPLETO E SUTIL
-   =================================== */
+/* ======================================================================== */
+/* CSS FINAL v3 - Fiel à Identidade Visual da Agência PRODGIO               */
+/* ======================================================================== */
 
-/* --- 1. O Botão (Hambúrguer para X) --- */
+/* ------------------------------------------------------------------------ */
+/* 1. A Paleta de Cores e Estrutura Base                                    */
+/* ------------------------------------------------------------------------ */
+:root {
+    /* A cor exata da sua marca, extraída da imagem. */
+    --color-primary-purple: #9333ea;
+    /* Roxo/Magenta Elétrico (corresponde ao h1 e botão) */
+    --color-primary-purple-rgb: 147, 51, 234;
+    /* Para o efeito de brilho (glow) */
 
-.navbar-toggle {
-    display: none;
-    position: fixed;
-    top: 1rem;
-    right: 1.5rem;
-    z-index: calc(var(--z-modal) + 10);
-    flex-direction: column;
-    gap: 0.35rem;
+    /* Tons de fundo e painéis */
+    --color-background-body: #0d0c12;
+    /* Um preto profundo, com um toque de roxo */
+    --color-panel-dark: #1e1b26;
+    /* Cinza escuro para botões secundários */
+    --color-border-subtle: #2a2733;
+    /* Borda sutil para elementos */
+
+    /* Cores de Texto */
+    --color-text-light: #fdfdfd;
+    --color-text-muted: #a09cb0;
+}
+
+body {
+    background-color: var(--color-background-body);
+    color: var(--color-text-muted);
+}
+
+/* ------------------------------------------------------------------------ */
+/* 2. Botões e Elementos Interativos (Recriando o Original)                 */
+/* ------------------------------------------------------------------------ */
+
+/* Estilo base para todos os botões da homepage */
+.btn-prodgio {
+    display: inline-block;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 8px;
+    padding: 0.8rem 1.75rem;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    border: none;
     cursor: pointer;
-    padding: var(--spacing-sm);
-    border-radius: var(--radius-md);
-    transition: transform 0.3s ease;
+}
 
-    /* 👇👇👇 A CORREÇÃO ESTÁ AQUI 👇👇👇 */
-    /* Removemos o fundo, a borda e o desfoque para um visual limpo */
+/* Botão Primário (Roxo com Brilho) */
+.btn-primary {
+    background-color: var(--color-primary-purple);
+    color: var(--color-text-light);
+    box-shadow: 0 0 25px rgba(var(--color-primary-purple-rgb), 0.35);
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 35px rgba(var(--color-primary-purple-rgb), 0.5);
+}
+
+/* Botão Secundário (Contorno) - para variedade futura */
+.btn-secondary {
+    background-color: transparent;
+    color: var(--color-text-light);
+    border: 1px solid var(--color-border-subtle);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-panel-dark);
+    border-color: var(--color-primary-purple);
+}
+
+/* ------------------------------------------------------------------------ */
+/* 3. Estilos Específicos por Seção                                         */
+/* ------------------------------------------------------------------------ */
+
+/* --- Seção Herói --- */
+.hero-section {
+    /* Removemos o painel. O herói vive diretamente no fundo do site. */
     background: none;
     border: none;
-    backdrop-filter: none;
+    padding: 4rem 1rem;
 }
 
-.navbar-toggle:hover {
-    transform: scale(1.1);
+.hero-title {
+    color: var(--color-text-light);
+    font-size: 3.5rem;
+    /* Aumenta o tamanho para mais impacto */
+    font-weight: 800;
+    line-height: 1.2;
 }
 
-/* Mostra o botão apenas em telas mobile */
-@media (max-width: 768px) {
-    .navbar-toggle {
-        display: flex;
-    }
+/* Classe utilitária para pintar o texto com a cor da marca */
+.text-highlight {
+    color: var(--color-primary-purple);
 }
 
-/* ... (resto do seu CSS do menu, sem alterações) ... */
+/* --- Seção Rifas em Destaque --- */
+.raffle-card {
+    background-color: #18181b;
+    /* Card com fundo escuro, não branco */
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 12px;
+    overflow: hidden;
+    color: var(--color-text-muted);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.raffle-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--color-primary-purple);
+}
+
+.raffle-card .raffle-title a {
+    color: var(--color-text-light);
+    text-decoration: none;
+}
+
+.raffle-card .raffle-price {
+    color: var(--color-text-light);
+    /* Preço branco para contraste no fundo escuro */
+    font-weight: 700;
+}
+
+.raffle-card .progress-bar-wrapper .bg-blue-600 {
+    /* Classe antiga do Tailwind */
+    background-color: var(--color-primary-purple);
+    /* Corrigindo a barra de progresso */
+}
+
+/* --- Seção Como Funciona --- */
+.how-it-works .step-card .flex {
+    /* Círculo do ícone */
+    background-color: transparent;
+    border: 1px solid var(--color-border-subtle);
+    transition: border-color 0.3s ease;
+}
+
+.how-it-works .step-card:hover .flex {
+    border-color: var(--color-primary-purple);
+}
+
+.how-it-works .step-card svg {
+    color: var(--color-primary-purple);
+}
+
+.how-it-works .step-card .step-title {
+    color: var(--color-text-light);
+}
+
+/* --- Seção Últimos Ganhadores --- */
+.winner-card {
+    background-color: var(--color-panel-dark);
+    border: 1px solid var(--color-border-subtle);
+    color: var(--color-text-muted);
+    border-radius: 12px;
+}
+
+.winner-card img {
+    border: 2px solid var(--color-primary-purple);
+}
+
+.winner-card .winner-name {
+    color: var(--color-text-light);
+}
+
+.winner-card a {
+    color: var(--color-primary-purple);
+    font-weight: 600;
+}
