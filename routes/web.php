@@ -42,9 +42,7 @@ Route::get('/skin/{product}', ShowPage::class)->name('skins.show');
 | Rotas de Autenticação
 |--------------------------------------------------------------------------
 */
-// --- A SOLUÇÃO ESTÁ AQUI ---
-// Esta linha importa todas as rotas de autenticação (login, logout, etc.)
-// Ela foi removida acidentalmente e agora está de volta.
+// Esta linha carrega as rotas de login, registro, etc.
 require __DIR__ . '/auth.php';
 
 
@@ -54,13 +52,16 @@ require __DIR__ . '/auth.php';
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
-    // Esta linha define a rota 'dashboard' para usuários logados.
     Route::view('/dashboard', 'dashboard')->name('dashboard');
 
     Route::get('/meus-pedidos', MyOrders::class)->name('my.orders');
     Route::get('/minhas-cotas', MyTickets::class)->name('my.tickets');
     Route::get('/meus-pedidos/{order}', OrderShowPage::class)->name('my.orders.show');
     Route::get('/profile', ProfileEditPage::class)->name('profile.edit');
+
+    // --- A SOLUÇÃO ESTÁ AQUI ---
+    // Definimos manualmente a rota de logout para garantir que ela exista.
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
 
@@ -70,7 +71,6 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    // O nome desta rota é 'admin.dashboard'
     Route::get('/dashboard', AdminDashboard::class)->name('dashboard');
     Route::get('/rifas', AdminRafflesIndex::class)->name('raffles.index');
     Route::get('/rifa/{raffle}/cotas', AdminManageTickets::class)->name('raffles.tickets');

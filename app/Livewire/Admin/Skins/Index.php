@@ -4,7 +4,7 @@ namespace App\Livewire\Admin\Skins;
 
 use App\Models\Product;
 use Livewire\Component;
-use Livewire\WithFileUploads; // Para upload de imagens
+use Livewire\WithFileUploads;
 
 class Index extends Component
 {
@@ -15,9 +15,8 @@ class Index extends Component
 
     // Propriedades para o formulário
     public $name, $description, $wear, $price, $steam_inspect_link, $image;
-    public $productId; // Para edição futura
+    public $productId;
 
-    // Removi a validação da imagem daqui para ser condicional
     protected $rules = [
         'name' => 'required|string|max:255',
         'wear' => 'required|string',
@@ -32,10 +31,9 @@ class Index extends Component
 
     public function render()
     {
-        // <-- A ÚNICA CORREÇÃO NECESSÁRIA!
-        // Apontando para o layout correto que existe no seu projeto.
-        return view('livewire.admin.skins.index')
-            ->layout('layouts.app');
+        // Agora ele renderiza apenas a si mesmo, sem forçar um layout.
+        // Isso permite que ele seja incluído em qualquer outra página.
+        return view('livewire.admin.skins.index');
     }
 
     public function create()
@@ -46,9 +44,8 @@ class Index extends Component
 
     public function store()
     {
-        // Adicionando a validação da imagem apenas na criação
         $this->validate(array_merge($this->rules, [
-            'image' => 'required|image|max:1024', // 1MB Max
+            'image' => 'required|image|max:1024',
         ]));
 
         $product = Product::create([
@@ -57,8 +54,8 @@ class Index extends Component
             'wear' => $this->wear,
             'price' => $this->price,
             'steam_inspect_link' => $this->steam_inspect_link,
-            'type' => 'in_stock', // Definido como Pronta Entrega
-            'status' => 'available', // Já nasce disponível
+            'type' => 'in_stock',
+            'status' => 'available',
         ]);
 
         if ($this->image) {
@@ -69,7 +66,7 @@ class Index extends Component
 
         session()->flash('message', 'Skin adicionada com sucesso!');
         $this->isModalOpen = false;
-        $this->mount(); // Recarrega a lista
+        $this->mount();
     }
 
     private function resetForm()
