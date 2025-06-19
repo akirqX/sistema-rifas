@@ -174,4 +174,25 @@
             </div>
         </div>
     @endif
+
+    {{-- SCRIPT PARA O GRÁFICO DE VENDAS --}}
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            const ctx = document.getElementById('salesChart')?.getContext('2d');
+            if (!ctx) return;
+            const salesChart = new Chart(ctx, { /* ... opções do gráfico ... */ });
+            @this.on('salesDataUpdated', salesData => {
+                salesChart.data.labels = salesData.labels;
+                salesChart.data.datasets[0].data = salesData.data;
+                salesChart.update();
+            });
+            // Dispara um evento inicial para popular o gráfico
+            @this.dispatch('salesDataUpdated', @json($salesChartData));
+        });
+    </script>
+    @endpush
+
 </div>
+
