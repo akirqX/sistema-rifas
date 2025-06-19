@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Route;
 
 // Imports de Controllers
-use App\Http\Controllers\Auth\AuthenticatedSessionController; // Importante para a rota de logout
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PaymentWebhookController;
 
 // Imports de Componentes Livewire
@@ -18,7 +19,7 @@ use App\Livewire\User\OrderShowPage;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Skins\IndexPage;
 use App\Livewire\Skins\ShowPage;
-
+use App\Livewire\Admin\Raffles\ManageTickets; // Adicione este 'use' no topo
 
 /*
 |--------------------------------------------------------------------------
@@ -38,7 +39,6 @@ Route::get('/skin/{product}', ShowPage::class)->name('skins.show');
 | Rotas de Autenticação
 |--------------------------------------------------------------------------
 */
-// Esta linha carrega as rotas de login, registro, etc.
 require __DIR__ . '/auth.php';
 
 
@@ -48,16 +48,16 @@ require __DIR__ . '/auth.php';
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth')->group(function () {
+    // --- A SOLUÇÃO ESTÁ AQUI ---
+    // Estas linhas definem as rotas do painel do usuário.
+    // Elas haviam sido removidas acidentalmente.
     Route::view('/dashboard', 'dashboard')->name('dashboard');
-
     Route::get('/meus-pedidos', MyOrders::class)->name('my.orders');
     Route::get('/minhas-cotas', MyTickets::class)->name('my.tickets');
     Route::get('/meus-pedidos/{order}', OrderShowPage::class)->name('my.orders.show');
     Route::get('/profile', ProfileEditPage::class)->name('profile.edit');
 
-    // --- A SOLUÇÃO ESTÁ AQUI ---
-    // Definimos manualmente a rota de logout para garantir que ela exista,
-    // não importa o que aconteça no arquivo auth.php.
+    // Definição manual da rota de logout para garantir que ela exista.
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 });
 
@@ -68,7 +68,9 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'admin'])->group(function () {
+    // O nome desta rota é 'admin.dashboard'
     Route::get('/admin', AdminDashboard::class)->name('admin.dashboard');
+    Route::get('/admin/raffle/{raffle}/tickets', ManageTickets::class)->name('admin.raffles.tickets');
 });
 
 
