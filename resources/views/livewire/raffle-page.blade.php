@@ -1,72 +1,110 @@
 <div>
-    <section class="section">
-        <div class="container mx-auto px-4">
+    {{-- ========================================================= --}}
+    {{--    A SOLUÇÃO DEFINITIVA: CSS DIRETO NA PÁGINA          --}}
+    {{--    Isto força o layout a funcionar, sem depender do build --}}
+    {{-- ========================================================= --}}
+    <style>
+        /* Por padrão, a sidebar do desktop está escondida. */
+        #desktop-sidebar {
+            display: none;
+        }
 
-            {{-- ADIÇÃO: Bloco para exibir mensagens de erro --}}
-            @if(session()->has('error'))
-                <div class="mb-4 rounded-md bg-red-500/20 p-4 text-sm text-red-300 border border-red-500/30">
-                    <strong>Ops!</strong> {{ session('error') }}
-                </div>
-            @endif
-             @if(session()->has('info'))
-                <div class="mb-4 rounded-md bg-blue-500/20 p-4 text-sm text-blue-300 border border-blue-500/30">
-                    {{ session('info') }}
-                </div>
-            @endif
+        /* Em telas grandes (min-width: 1024px, o 'lg' do Tailwind)... */
+        @media (min-width: 1024px) {
+            /* ...mostramos a sidebar do desktop... */
+            #desktop-sidebar {
+                display: block;
+            }
+            /* ...e escondemos a versão mobile das ações. */
+            #mobile-actions {
+                display: none;
+            }
+        }
+    </style>
 
-            {{-- Detalhes da Rifa --}}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div>
-                    <img class="rounded-2xl shadow-lg w-full aspect-video object-cover border border-border" src="{{ $raffle->getFirstMediaUrl('raffles') ?: 'https://via.placeholder.com/800x450.png?text=Rifa' }}" alt="Imagem da {{ $raffle->title }}">
-                </div>
-                <div class="bg-bg-secondary p-8 rounded-2xl border border-border">
-                    <h1 class="font-heading text-3xl text-white mb-2">{{ $raffle->title }}</h1>
-                    <p class="text-2xl font-bold text-primary-light mb-4">R$ {{ number_format($raffle->price, 2, ',', '.') }} por cota</p>
-                    <p class="text-text-muted leading-relaxed">{{ $raffle->description }}</p>
-                </div>
-            </div>
+    <div class="container mx-auto px-4 py-8 xl:py-12">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
 
-            {{-- Seção de Ações e Seleção de Cotas --}}
-            <div class="bg-bg-secondary p-8 rounded-2xl border border-border">
+            {{-- COLUNA DA ESQUERDA (CONTEÚDO PRINCIPAL) --}}
+            <div class="lg:col-span-2 space-y-8">
 
-                <div class="bg-bg-tertiary p-4 rounded-lg mb-6 sticky top-24 z-20">
-                    <div class="flex flex-wrap justify-between items-center gap-4">
-                        <div>
-                            <span class="font-bold text-white">{{ count($selectedTickets) }}</span>
-                            <span class="text-text-muted">cota(s) selecionada(s)</span>
+                {{-- PAINEL DA IMAGEM E INFO --}}
+                <div class="bg-bg-secondary rounded-2xl border border-border p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 items-center">
+                        <div class="w-full">
+                            <img src="{{ $raffle->getFirstMediaUrl('raffles') ?: 'https://via.placeholder.com/800x450.png?text=Imagem' }}" alt="Prêmio: {{ $raffle->title }}" class="w-full rounded-lg object-cover">
                         </div>
-                        <div class="text-right">
-                            <span class="text-text-muted">Total:</span>
-                            <span class="font-bold text-2xl text-primary-light ml-2">R$ {{ number_format(count($selectedTickets) * $raffle->price, 2, ',', '.') }}</span>
+                        <div class="flex flex-col h-full text-center md:text-left">
+                            <h1 class="font-heading text-3xl xl:text-4xl text-text-light">{{ $raffle->title }}</h1>
+                            <p class="text-lg text-primary-light font-semibold mt-1">R$ {{ number_format($raffle->price, 2, ',', '.') }} por cota</p>
+                            <p class="text-text-muted mt-4 flex-grow">{{ $raffle->description }}</p>
+                            <div class="mt-6">
+                                <div class="flex justify-between text-sm font-medium text-text-muted mb-1">
+                                    <span>Progresso</span>
+                                    <span>{{ number_format($progressPercent, 1) }}%</span>
+                                </div>
+                                <div class="w-full bg-bg-tertiary rounded-full h-2.5"><div class="bg-primary-light h-2.5 rounded-full" style="width: {{ $progressPercent }}%"></div></div>
+                            </div>
                         </div>
-                        <button wire:click="reserveTickets" class="cta-primary w-full md:w-auto" @if(empty($selectedTickets)) disabled @endif>
-                            Participar com {{ count($selectedTickets) }} cota(s)
-                        </button>
                     </div>
                 </div>
 
-                <h3 class="font-heading text-2xl text-center text-white mb-4">Selecione seus números da sorte</h3>
-                <div class="grid grid-cols-5 sm:grid-cols-10 md:grid-cols-15 lg:grid-cols-20 gap-2">
-                    @foreach ($tickets as $ticket)
-                        @php
-                            $isSelected = in_array($ticket->number, $selectedTickets);
-                            $isDisabled = $ticket->status !== 'available';
+                {{-- PAINÉIS DE AÇÃO (VERSÃO MOBILE) - Recebe o ID 'mobile-actions' --}}
+                <div id="mobile-actions" class="space-y-8">
+                    <div class="bg-bg-secondary p-6 rounded-2xl border border-border text-center">
+                        <p class="text-text-muted">Você selecionou</p>
+                        <p class="text-4xl font-bold text-primary-light my-1">{{ count($selectedTickets) }} cota(s)</p>
+                        <p class="text-2xl font-semibold text-text-light">Total: R$ {{ number_format(count($selectedTickets) * $raffle->price, 2, ',', '.') }}</p>
+                        <button wire:click="reserveTickets" class="cta-primary w-full max-w-xs mx-auto mt-4 py-3 text-lg transition-opacity @if(empty($selectedTickets)) opacity-50 @endif">Participar</button>
+                    </div>
+                    <div class="bg-bg-secondary p-6 rounded-2xl border border-border">
+                        <h3 class="font-semibold text-text-light text-center mb-4">Ações Rápidas</h3>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button wire:click="adjustSelection(1)" class="action-btn-sm">+1</button><button wire:click="adjustSelection(5)" class="action-btn-sm">+5</button><button wire:click="adjustSelection(10)" class="action-btn-sm">+10</button><button wire:click="adjustSelection(50)" class="action-btn-sm">+50</button>
+                            <button wire:click="adjustSelection(-1)" class="action-btn-sm remove">-1</button><button wire:click="adjustSelection(-5)" class="action-btn-sm remove">-5</button><button wire:click="adjustSelection(-10)" class="action-btn-sm remove">-10</button><button wire:click="clearSelection" wire:confirm="Limpar seleção?" class="action-btn-sm clear"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
 
-                            $class = 'bg-bg-tertiary text-text-muted hover:bg-primary-dark/50';
-                            if ($isSelected) $class = 'bg-primary-light text-white ring-2 ring-offset-2 ring-offset-bg-secondary ring-primary-light';
-                            if ($isDisabled) $class = 'bg-bg-primary text-text-subtle cursor-not-allowed';
-                        @endphp
+                {{-- PAINEL DA GRADE DE NÚMEROS --}}
+                <div class="bg-bg-secondary p-6 rounded-2xl border border-border">
+                    <h2 class="text-2xl font-semibold text-text-light text-center mb-6">Escolha suas cotas</h2>
+                    <div class="flex flex-wrap items-center justify-center gap-2 mb-4">
+                        @for ($page = 1; $page <= $totalPages; $page++)
+                            <button wire:click="changePage({{ $page }})" class="px-3 py-1 text-sm rounded-md font-semibold transition-colors {{ $currentPage === $page ? 'bg-primary-light text-white' : 'bg-bg-tertiary hover:bg-border' }}">{{ str_pad(($page - 1) * $perPage + 1, 4, '0', STR_PAD_LEFT) }} - {{ str_pad(min($page * $perPage, $totalTickets), 4, '0', STR_PAD_LEFT) }}</button>
+                        @endfor
+                    </div>
+                    <div class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-15 gap-2">
+                        @for ($i = ($currentPage - 1) * $perPage + 1; $i <= min($currentPage * $perPage, $totalTickets); $i++)
+                            @php $number = str_pad($i, 4, '0', STR_PAD_LEFT); $isOccupied = in_array($number, $occupiedNumbers); $isSelected = in_array($number, $selectedTickets); @endphp
+                            <button wire:click="selectTicket('{{ $number }}')" wire:key="ticket-{{ $number }}" @if($isOccupied) disabled @endif class="ticket-btn @if($isSelected) is-selected @elseif($isOccupied) is-occupied @endif">{{ $number }}</button>
+                        @endfor
+                    </div>
+                </div>
+            </div>
 
-                        <button
-                            wire:click="selectTicket({{ $ticket->number }})"
-                            @if($isDisabled) disabled @endif
-                            class="p-2 rounded-md aspect-square flex items-center justify-center font-mono font-bold text-sm transition-all duration-200 {{ $class }}"
-                        >
-                            {{ str_pad($ticket->number, 4, '0', STR_PAD_LEFT) }}
-                        </button>
-                    @endforeach
+            {{-- COLUNA DA DIREITA (VERSÃO DESKTOP) - Recebe o ID 'desktop-sidebar' --}}
+            <div id="desktop-sidebar" class="lg:col-span-1">
+                <div class="sticky top-8 space-y-6">
+                    <div class="bg-bg-secondary p-6 rounded-2xl border border-border text-center">
+                        <p class="text-text-muted">Você selecionou</p>
+                        <p class="text-4xl font-bold text-primary-light my-1">{{ count($selectedTickets) }} cota(s)</p>
+                        <p class="text-2xl font-semibold text-text-light">Total: R$ {{ number_format(count($selectedTickets) * $raffle->price, 2, ',', '.') }}</p>
+                        <button wire:click="reserveTickets" class="cta-primary w-full max-w-xs mx-auto mt-4 py-3 text-lg transition-opacity @if(empty($selectedTickets)) opacity-50 @endif">Participar</button>
+                    </div>
+                    <div class="bg-bg-secondary p-6 rounded-2xl border border-border">
+                        <h3 class="font-semibold text-text-light text-center mb-4">Ações Rápidas</h3>
+                        <div class="grid grid-cols-4 gap-2">
+                            <button wire:click="adjustSelection(1)" class="action-btn-sm">+1</button><button wire:click="adjustSelection(5)" class="action-btn-sm">+5</button><button wire:click="adjustSelection(10)" class="action-btn-sm">+10</button><button wire:click="adjustSelection(50)" class="action-btn-sm">+50</button>
+                            <button wire:click="adjustSelection(-1)" class="action-btn-sm remove">-1</button><button wire:click="adjustSelection(-5)" class="action-btn-sm remove">-5</button><button wire:click="adjustSelection(-10)" class="action-btn-sm remove">-10</button><button wire:click="clearSelection" wire:confirm="Limpar seleção?" class="action-btn-sm clear"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
+
+        @if (session()->has('error'))
+            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" x-transition:leave="transition ease-in duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed bottom-5 right-5 bg-red-500 text-white font-bold py-3 px-5 rounded-lg shadow-lg"><i class="fas fa-exclamation-circle mr-2"></i> {{ session('error') }}</div>
+        @endif
+    </div>
 </div>

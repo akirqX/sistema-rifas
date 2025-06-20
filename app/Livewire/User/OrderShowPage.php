@@ -7,30 +7,24 @@ use Livewire\Component;
 
 class OrderShowPage extends Component
 {
-    // A propriedade pública para armazenar o pedido.
     public Order $order;
-    public ?array $pixData = null;
 
-    // O método mount é o ÚNICO lugar onde a inicialização deve acontecer.
     public function mount(Order $order)
     {
-        // Garante que o usuário logado só pode ver seus próprios pedidos.
+        // Garante que o usuário só possa ver seus próprios pedidos
         if ($order->user_id !== auth()->id()) {
-            abort(403, 'Acesso não autorizado.');
+            abort(403);
         }
 
-        // Carrega as relações e prepara os dados.
-        $this->order = $order->load('raffle.media', 'tickets');
-
-        if (!empty($this->order->payment_details)) {
-            $this->pixData = json_decode($this->order->payment_details, true);
-        }
+        // Carrega o pedido com as relações necessárias para a view
+        $this->order = $order->load('raffle', 'tickets');
     }
 
-    // O método render simplesmente renderiza a view.
-    // O Livewire já torna a propriedade pública `$order` disponível para a view.
     public function render()
     {
+        // A cada atualização (pelo wire:poll), recarrega os dados do pedido do banco
+        $this->order->refresh();
+
         return view('livewire.user.order-show-page')->layout('layouts.app');
     }
 }

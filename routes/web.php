@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// Imports de Controllers (Apenas os que realmente existem)
+// Imports de Controllers
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\ProfileController;
 
@@ -17,8 +17,6 @@ use App\Livewire\Profile\EditPage as ProfileEditPage;
 use App\Livewire\User\MyOrders;
 use App\Livewire\User\MyTickets;
 use App\Livewire\User\OrderShowPage;
-use App\Livewire\Admin\Dashboard as AdminDashboard;
-use App\Livewire\Admin\Raffles\ManageTickets;
 use App\Livewire\Skins\IndexPage;
 use App\Livewire\Skins\ShowPage;
 
@@ -40,7 +38,6 @@ Route::get('/skin/{product}', ShowPage::class)->name('skins.show');
 | Rotas de Autenticação
 |--------------------------------------------------------------------------
 */
-// Carrega as rotas de login, registro, etc., do arquivo auth.php
 require __DIR__ . '/auth.php';
 
 
@@ -56,9 +53,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/meus-pedidos/{order}', OrderShowPage::class)->name('my.orders.show');
     Route::get('/profile', ProfileEditPage::class)->name('profile.edit');
 
-    // --- A SOLUÇÃO FINAL ESTÁ AQUI ---
-    // Definimos a rota de logout usando uma função direta (Closure).
-    // Isso não depende de nenhum controller que possa estar faltando.
     Route::post('logout', function (Request $request) {
         Auth::guard('web')->logout();
         $request->session()->invalidate();
@@ -74,8 +68,10 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', AdminDashboard::class)->name('dashboard');
-    Route::get('/raffle/{raffle}/tickets', ManageTickets::class)->name('raffles.tickets');
+    Route::view('/', 'admin.index')->name('dashboard');
+
+    // ROTA CORRIGIDA: O nome agora é relativo ao grupo.
+    Route::get('/raffle/{raffle}/tickets', \App\Livewire\Admin\Raffles\ManageTickets::class)->name('raffles.tickets'); // <-- CORREÇÃO AQUI. Removemos o "admin." do início.
 });
 
 
