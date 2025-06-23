@@ -3,49 +3,59 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Order extends Model
 {
     use HasFactory;
 
-    /**
-     * Usa $guarded para permitir que todos os campos sejam preenchidos em massa,
-     * exatamente como no seu código original.
-     */
-    protected $guarded = [];
+    protected $fillable = ['user_id', 'raffle_id', 'product_id', 'ticket_quantity', 'total_amount', 'status', 'expires_at', 'guest_name', 'guest_email', 'payment_gateway', 'transaction_id', 'payment_details', 'uuid'];
+    protected $casts = ['expires_at' => 'datetime', 'payment_details' => 'array'];
 
-    /**
-     * A CORREÇÃO CRÍTICA:
-     * Diz ao Laravel para tratar a coluna 'payment_details' como um array/JSON.
-     * Isso permite que você acesse os dados com $order->payment_details['qr_code'].
-     */
-    protected $casts = [
-        'expires_at' => 'datetime',
-        'payment_details' => 'array',
-    ];
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($order) {
+            if (empty($order->uuid)) {
+                $order->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
+    public function getRouteKeyName()
+    {
+        return 'uuid';
+    }
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
     public function raffle()
     {
         return $this->belongsTo(Raffle::class);
     }
-
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
     }
 
+    /**
+     * Helper para obter o nome do comprador, seja ele um usuário registrado ou um convidado.
+     */
     public function getBuyerName(): string
     {
-        return $this->user->name ?? $this->guest_name ?? 'N/A';
+        return optional($this->user)->name ?? $this->guest_name ?? 'N/A';
     }
 
+    /**
+     * Helper para obter o e-mail do comprador.
+     */
     public function getBuyerEmail(): string
     {
-        return $this->user->email ?? $this->guest_email ?? 'N/A';
+        return optional($this->user)->email ?? $this->guest_email ?? 'N/A';
     }
 }

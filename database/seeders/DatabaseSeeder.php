@@ -4,7 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash; // Importante!
+// Não precisamos mais do 'use Illuminate\Support\Facades\Hash;' aqui se só for usado para isso
+// use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,7 +15,8 @@ class DatabaseSeeder extends Seeder
         User::create([
             'name' => 'AKRX001',
             'email' => 'akrxteste@prodgio.com',
-            'password' => Hash::make('teste01'), // Define a senha como 'password'
+            'is_admin' => true, // <-- Adicionei isso, já que o usuário de teste deve ser admin
+            'password' => 'teste01', // Passando a senha como texto puro. O modelo vai criptografar!
         ]);
 
         // Chama o nosso outro seeder para criar a rifa

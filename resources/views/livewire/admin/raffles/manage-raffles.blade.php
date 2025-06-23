@@ -61,7 +61,7 @@
 
     {{-- MODAL PARA CRIAR/EDITAR RIFA --}}
     @if ($showRaffleModal)
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data @click.self="$wire.set('showRaffleModal', false)" x-trap.noscroll.inert="showRaffleModal">
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data x-trap.noscroll.inert="showRaffleModal">
             <div class="bg-panel-dark p-8 rounded-2xl w-full max-w-2xl border border-border-subtle max-h-screen overflow-y-auto">
                 <h2 class="text-2xl font-bold text-white mb-6">{{ $editingRaffle ? 'Editar Rifa' : 'Criar Nova Rifa' }}</h2>
                 <form wire:submit.prevent="saveRaffle" class="space-y-4">
@@ -80,7 +80,7 @@
 
     {{-- MODAL DE SORTEIO MANUAL --}}
     @if ($showDrawModal)
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data @click.self="$wire.set('showDrawModal', false)" x-trap.noscroll.inert="showDrawModal">
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data x-trap.noscroll.inert="showDrawModal">
             <div class="bg-panel-dark p-8 rounded-2xl w-full max-w-md border border-border-subtle">
                 <h2 class="text-2xl font-bold text-white mb-6 text-center">Definir Ganhador Manualmente</h2>
                 <form wire:submit.prevent="setWinner" class="space-y-4">
@@ -100,7 +100,7 @@
 
     {{-- MODAL PARA VISUALIZAR COTAS --}}
     @if ($showTicketsModal)
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data @click.self="$wire.set('showTicketsModal', false)" x-trap.noscroll.inert="showTicketsModal">
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data x-trap.noscroll.inert="showTicketsModal">
             <div class="bg-panel-dark p-8 rounded-2xl w-full max-w-4xl border border-border-subtle max-h-[90vh] flex flex-col">
                 <h2 class="text-2xl font-bold text-white mb-6">Cotas da Rifa: <span class="text-primary-light">{{ $raffleForTickets?->title }}</span></h2>
                 <div class="overflow-y-auto flex-grow">

@@ -21,8 +21,21 @@
                 </div>
 
                 <div class="flex items-center gap-4">
-                    {{-- TODO: Adicionar lógica para o checkout da skin --}}
-                    <a href="#" class="btn-prodgio btn-primary flex-grow text-center">Comprar Agora</a>
+                    {{-- O link <a> foi substituído por um botão funcional com wire:click. --}}
+                    <button
+                        wire:click="startCheckout"
+                        wire:loading.attr="disabled"
+                        wire:target="startCheckout"
+                        class="btn-prodgio btn-primary flex-grow text-center"
+                    >
+                        <span wire:loading.remove wire:target="startCheckout">
+                            Comprar Agora
+                        </span>
+                        <span wire:loading wire:target="startCheckout">
+                            Redirecionando...
+                        </span>
+                    </button>
+
                     @if($product->steam_inspect_link)
                         <a href="{{ $product->steam_inspect_link }}" target="_blank" class="btn-prodgio btn-secondary text-center">Inspecionar no Jogo</a>
                     @endif

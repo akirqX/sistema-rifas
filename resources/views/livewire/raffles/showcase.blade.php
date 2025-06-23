@@ -6,18 +6,30 @@
                 <p class="section-subtitle">Escolha sua sorte e participe. O próximo vencedor pode ser você!</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 @forelse ($raffles as $raffle)
-                    <div class="skin-card">
-                        <a href="{{ route('raffle.show', $raffle) }}" class="skin-image-wrapper">
-                            <img src="{{ $raffle->getFirstMediaUrl('raffles') ?: 'https://via.placeholder.com/400x300.png?text=Rifa' }}" alt="Imagem da {{ $raffle->title }}">
+                    <div class="raffle-card group">
+                        <a href="{{ route('raffle.show', $raffle) }}" class="block overflow-hidden rounded-t-lg">
+                            <img src="{{ $raffle->getFirstMediaUrl('raffles', 'default') ?: 'https://via.placeholder.com/400x300.png?text=Rifa' }}"
+                                 alt="Imagem da {{ $raffle->title }}"
+                                 class="w-full h-48 object-cover transform group-hover:scale-110 transition-transform duration-300">
                         </a>
-                        <div class="skin-content">
-                            <h3 class="skin-title">{{ $raffle->title }}</h3>
-                            <p class="skin-wear">{{ \Illuminate\Support\Str::limit($raffle->description, 80) }}</p>
+                        <div class="p-4 bg-bg-secondary rounded-b-lg border-x border-b border-border">
+                            <h3 class="font-bold text-text-light truncate" title="{{ $raffle->title }}">{{ $raffle->title }}</h3>
 
-                            {{-- CORREÇÃO: Usando a propriedade correta 'price' --}}
-                            <p class="skin-price">R$ {{ number_format($raffle->price, 2, ',', '.') }}</p>
+                            {{-- CORREÇÃO APLICADA AQUI --}}
+                            <p class="text-primary-light font-semibold text-lg my-2">R$ {{ number_format($raffle->ticket_price, 2, ',', '.') }} por cota</p>
+
+                            <div class="mt-4">
+                                @php
+                                    $soldTickets = $raffle->tickets()->where('status', '!=', 'available')->count();
+                                    $progress = $raffle->total_tickets > 0 ? ($soldTickets / $raffle->total_tickets) * 100 : 0;
+                                @endphp
+                                <div class="w-full bg-bg-tertiary rounded-full h-2.5">
+                                    <div class="bg-primary-light h-2.5 rounded-full" style="width: {{ $progress }}%"></div>
+                                </div>
+                                <div class="text-xs text-text-muted mt-1 text-center">{{ $soldTickets }} / {{ $raffle->total_tickets }} cotas vendidas</div>
+                            </div>
 
                             <a href="{{ route('raffle.show', $raffle) }}" class="cta-primary mt-4 w-full justify-center">
                                 Participar

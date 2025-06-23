@@ -42,7 +42,7 @@
 
     {{-- MODAL PARA CRIAR/EDITAR SKIN --}}
     @if ($showSkinModal)
-        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data @click.self="$wire.set('showSkinModal', false)" x-trap.noscroll.inert="showSkinModal">
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" x-data x-trap.noscroll.inert="showSkinModal">
             <div class="bg-panel-dark p-8 rounded-2xl w-full max-w-2xl border border-border-subtle max-h-screen overflow-y-auto">
                 <h2 class="text-2xl font-bold text-white mb-6">{{ $editingProduct ? 'Editar Skin' : 'Adicionar Nova Skin' }}</h2>
                 <form wire:submit.prevent="saveSkin" class="space-y-4">

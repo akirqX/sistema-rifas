@@ -6,9 +6,9 @@ use App\Models\Order;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB; // IMPORTANTE: Adicionar esta linha
 
-class TicketsCleanupCommand extends Command
+class OrdersCleanupCommand extends Command
 {
-    protected $signature = 'tickets:cleanup';
+    protected $signature = 'orders:cleanup';
     protected $description = 'Cancela pedidos pendentes expirados e libera os tickets';
 
     public function handle()

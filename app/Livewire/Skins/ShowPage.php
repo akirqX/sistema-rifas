@@ -17,6 +17,28 @@ class ShowPage extends Component
         $this->product = $product;
     }
 
+    public function startCheckout()
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $checkoutData = [
+            'type' => 'product',
+            'item_id' => $this->product->id,
+            'details' => [
+                'quantity' => 1,
+            ],
+        ];
+
+        session()->put('checkout_data', $checkoutData);
+
+        // ==========================================================================
+        // CORREÇÃO APLICADA AQUI
+        // ==========================================================================
+        return redirect()->route('checkout');
+    }
+
     public function render()
     {
         return view('livewire.skins.show-page')->layout('layouts.app');

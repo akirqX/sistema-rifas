@@ -32,32 +32,32 @@ class ManageRaffles extends Component
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'raffle_price' => 'required|numeric|min:0.01',
-            'total_numbers' => 'required|integer|min:2' . ($this->editingRaffle ? '' : '|unique:raffles,total_numbers'),
+            'total_numbers' => 'required|integer|min:2',
             'raffle_photo' => ['nullable', $this->raffle_photo ? 'image' : '', 'max:2048'],
         ];
     }
-
-    // Cole todos os seus métodos originais de rifa aqui
-    // Ex: saveRaffle, setWinner, performRandomDraw, activateRaffle, cancelRaffle etc.
-    // O código abaixo é uma implementação completa.
 
     public function saveRaffle()
     {
         $validatedData = $this->validate();
 
         DB::transaction(function () use ($validatedData) {
+            // CORREÇÃO: Usando os nomes corretos das colunas do banco de dados
             $data = [
                 'title' => $validatedData['title'],
                 'description' => $validatedData['description'],
-                'price' => $validatedData['raffle_price'],
+                'ticket_price' => $validatedData['raffle_price'], // <-- CORREÇÃO AQUI
             ];
 
             if ($this->editingRaffle) {
+                // Ao editar, não alteramos o número de cotas
                 $raffle = $this->editingRaffle;
                 $raffle->update($data);
                 session()->flash('success', 'Rifa atualizada com sucesso!');
             } else {
-                $data['total_numbers'] = $validatedData['total_numbers'];
+                // CORREÇÃO: Usando os nomes corretos ao criar
+                $data["total_tickets"] = $validatedData["total_numbers"]; // <-- CORREÇÃO AQUI
+                $data["user_id"] = auth()->id();
                 $data['status'] = 'pending';
                 $raffle = Raffle::create($data);
                 session()->flash('success', 'Rifa criada com sucesso!');
@@ -84,8 +84,9 @@ class ManageRaffles extends Component
         $this->editingRaffle = $raffle;
         $this->title = $raffle->title;
         $this->description = $raffle->description;
-        $this->raffle_price = $raffle->price;
-        $this->total_numbers = $raffle->total_numbers;
+        // CORREÇÃO: Carregando os dados das colunas com os nomes corretos
+        $this->raffle_price = $raffle->ticket_price;    // <-- CORREÇÃO AQUI
+        $this->total_numbers = $raffle->total_tickets; // <-- CORREÇÃO AQUI
         $this->showRaffleModal = true;
     }
 
@@ -95,7 +96,7 @@ class ManageRaffles extends Component
         $this->reset('title', 'description', 'raffle_price', 'total_numbers', 'editingRaffle', 'raffle_photo');
     }
 
-    // Outros métodos...
+    // Outros métodos (sem alterações)...
     public function openDrawModal(Raffle $raffle)
     {
         $this->raffleToDraw = $raffle;
@@ -118,7 +119,6 @@ class ManageRaffles extends Component
         $raffle->update(['status' => 'cancelled']);
         session()->flash('success', 'Rifa cancelada.');
     }
-    // ... cole seus outros métodos aqui ...
 
     public function render()
     {
