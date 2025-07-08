@@ -37,14 +37,14 @@ class OrderShowPage extends Component
     public function generateMercadoPagoPayment()
     {
         if ($this->order->raffle?->status !== 'active') {
-            $this->showError('Esta rifa não está mais ativa e não pode ser paga.');
+            $this->showError('Esta rifa não está mais ativa.');
             return;
         }
         try {
             MercadoPagoConfig::setAccessToken(config('services.mercadopago.token'));
             $paymentClient = new PaymentClient();
 
-            // CORREÇÃO: Gerando a URL simples, SEM o prefixo /api
+            // CORREÇÃO: Gerando a URL simples, pois a rota agora está no AppServiceProvider
             $notificationUrl = url('/webhook');
             if (App::environment('local') && config('services.mercadopago.ngrok_url')) {
                 $notificationUrl = config('services.mercadopago.ngrok_url') . '/webhook';
@@ -62,7 +62,7 @@ class OrderShowPage extends Component
         } catch (MPApiException $e) {
             $this->handlePaymentGenerationError($e, 'Ocorreu um erro com o gateway de pagamento: ' . ($e->getApiResponse()->getContent()['message'] ?? $e->getMessage()));
         } catch (\Exception $e) {
-            $this->handlePaymentGenerationError($e, 'Ocorreu um erro inesperado ao gerar os dados de pagamento.');
+            $this->handlePaymentGenerationError($e, 'Ocorreu um erro inesperado.');
         }
     }
 

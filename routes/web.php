@@ -20,7 +20,6 @@ Route::get('/rifa/{raffle}', RafflePage::class)->name('raffle.show');
 Route::get('/arsenal', IndexPage::class)->name('skins.index');
 Route::get('/skin/{product}', ShowPage::class)->name('skins.show');
 Route::get('/pedido/{order:uuid}', OrderShowPage::class)->name('order.show');
-// Route::post('/webhook', [App\Http\Controllers\PaymentWebhookController::class, 'handle'])->name('payment.webhook');
 
 /* Rotas de Autenticação */
 require __DIR__ . '/auth.php';
@@ -35,8 +34,7 @@ Route::middleware('auth')->group(function () {
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
-    })->name('logout');
+        return redirect('/'); })->name('logout');
 });
 
 /* Rotas de Administrador */
@@ -44,4 +42,3 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::view('/', 'admin.index')->name('dashboard');
     Route::get('/raffle/{raffle}/tickets', \App\Livewire\Admin\Raffles\ManageTickets::class)->name('raffles.tickets');
 });
-
