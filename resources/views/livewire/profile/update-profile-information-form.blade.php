@@ -10,6 +10,8 @@ new class extends Component
 {
     public string $name = '';
     public string $email = '';
+    public string $cpf = '';
+    public string $phone = '';
 
     /**
      * Mount the component.
@@ -18,6 +20,8 @@ new class extends Component
     {
         $this->name = Auth::user()->name;
         $this->email = Auth::user()->email;
+        $this->cpf = Auth::user()->cpf ?? '';
+        $this->phone = Auth::user()->phone ?? '';
     }
 
     /**
@@ -30,6 +34,8 @@ new class extends Component
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)->ignore($user->id)],
+            'cpf' => ['required', 'string', 'max:20'],
+            'phone' => ['required', 'string', 'max:20'],
         ]);
 
         $user->fill($validated);
@@ -52,24 +58,22 @@ new class extends Component
 
         if ($user->hasVerifiedEmail()) {
             $this->redirectIntended(default: route('dashboard', absolute: false));
-
             return;
         }
 
         $user->sendEmailVerificationNotification();
-
         Session::flash('status', 'verification-link-sent');
     }
 }; ?>
 
 <section>
     <header>
-        <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-            {{ __('Profile Information') }}
+        <h2 class="text-lg font-medium text-text-light">
+            Informações do Perfil
         </h2>
 
-        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            {{ __("Update your account's profile information and email address.") }}
+        <p class="mt-1 text-sm text-text-muted">
+            Atualize as informações do seu perfil. CPF e Telefone são necessários para realizar compras.
         </p>
     </header>
 
@@ -102,6 +106,18 @@ new class extends Component
                     @endif
                 </div>
             @endif
+        </div>
+
+        <div>
+            <x-input-label for="phone" value="Telefone (WhatsApp)" />
+            <x-text-input wire:model="phone" id="phone" name="phone" type="tel" class="mt-1 block w-full" required placeholder="(XX) XXXXX-XXXX" />
+            <x-input-error class="mt-2" :messages="$errors->get('phone')" />
+        </div>
+
+        <div>
+            <x-input-label for="cpf" value="CPF" />
+            <x-text-input wire:model="cpf" id="cpf" name="cpf" type="text" class="mt-1 block w-full" required placeholder="000.000.000-00" />
+            <x-input-error class="mt-2" :messages="$errors->get('cpf')" />
         </div>
 
         <div class="flex items-center gap-4">

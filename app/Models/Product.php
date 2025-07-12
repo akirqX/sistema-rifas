@@ -17,7 +17,8 @@ class Product extends Model implements HasMedia
         'wear',
         'price',
         'status',
-        'steam_inspect_link'
+        'steam_inspect_link',
+        'quantity' // ADICIONE ESTA LINHA
     ];
 
     protected $casts = [

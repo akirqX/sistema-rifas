@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,8 +10,31 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'raffle_id', 'product_id', 'ticket_quantity', 'total_amount', 'status', 'expires_at', 'guest_name', 'guest_email', 'payment_gateway', 'transaction_id', 'payment_details', 'uuid'];
-    protected $casts = ['expires_at' => 'datetime', 'payment_details' => 'array'];
+    /**
+     * CORREÇÃO: Adicionados os novos campos para CPF e Telefone do convidado.
+     */
+    protected $fillable = [
+        'user_id',
+        'raffle_id',
+        'product_id',
+        'ticket_quantity',
+        'total_amount',
+        'status',
+        'expires_at',
+        'guest_name',
+        'guest_email',
+        'guest_cpf',      // <-- ADICIONADO
+        'guest_phone',    // <-- ADICIONADO
+        'payment_gateway',
+        'transaction_id',
+        'payment_details',
+        'uuid'
+    ];
+
+    protected $casts = [
+        'expires_at' => 'datetime',
+        'payment_details' => 'array'
+    ];
 
     protected static function boot()
     {
@@ -26,36 +50,34 @@ class Order extends Model
     {
         return 'uuid';
     }
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
     public function raffle()
     {
         return $this->belongsTo(Raffle::class);
     }
+
     public function product()
     {
         return $this->belongsTo(Product::class);
     }
+
     public function tickets()
     {
         return $this->hasMany(Ticket::class);
     }
 
-    /**
-     * Helper para obter o nome do comprador, seja ele um usuário registrado ou um convidado.
-     */
-    public function getBuyerName(): string
+    public function getBuyerName(): ?string
     {
-        return optional($this->user)->name ?? $this->guest_name ?? 'N/A';
+        return $this->user ? $this->user->name : $this->guest_name;
     }
 
-    /**
-     * Helper para obter o e-mail do comprador.
-     */
-    public function getBuyerEmail(): string
+    public function getBuyerEmail(): ?string
     {
-        return optional($this->user)->email ?? $this->guest_email ?? 'N/A';
+        return $this->user ? $this->user->email : $this->guest_email;
     }
 }

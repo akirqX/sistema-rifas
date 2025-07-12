@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
@@ -11,12 +12,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // CORREÇÃO: Rodando o comando a cada minuto para liberar cotas rapidamente.
-        $schedule->command('tickets:release-expired')->everyMinute();
+        // ======================================================================
+        // CORREÇÃO: Apontando para o novo comando que lida com rifas E produtos.
+        // ======================================================================
+        $schedule->command('orders:cleanup-expired')->everyMinute();
 
         // Seus outros comandos podem continuar aqui, sem problemas.
-        $schedule->command('payments:reconcile --days=1')->hourly();
-        $schedule->command('payments:reconcile --days=7')->daily();
+        // Nota: O comando 'payments:reconcile' não existe no seu projeto ainda,
+        // mas o deixei aqui pois estava no seu arquivo original.
+        // Se ele não existir, você pode remover ou comentar as duas linhas abaixo.
+        // $schedule->command('payments:reconcile --days=1')->hourly();
+        // $schedule->command('payments:reconcile --days=7')->daily();
     }
 
     /**
@@ -25,6 +31,7 @@ class Kernel extends ConsoleKernel
     protected function commands(): void
     {
         $this->load(__DIR__ . '/Commands');
+
         require base_path('routes/console.php');
     }
 }

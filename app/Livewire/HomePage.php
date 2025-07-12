@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Product;
 use App\Models\Raffle;
 use Livewire\Component;
 
@@ -9,21 +10,35 @@ class HomePage extends Component
 {
     public $featuredRaffles;
     public $latestWinners;
+    public $featuredSkins;
+    public ?Raffle $nextRaffleToEnd = null; // Propriedade para o contador
 
     public function mount()
     {
-        // Lógica para buscar as rifas em destaque (ex: as 4 mais recentes com status 'active')
-        $this->featuredRaffles = Raffle::where('status', 'active')->latest()->take(4)->get();
+        $this->featuredRaffles = Raffle::where('status', 'active')
+            ->withCount('ticketsSold')
+            ->latest()
+            ->take(8)
+            ->get();
 
-        // --- CORRIGIDO AQUI ---
-        // Trocamos 'winner_id' por 'winner_ticket_id' para corresponder ao seu banco de dados.
-        // Também usamos 'with' para carregar as relações de forma otimizada e evitar mais erros.
         $this->latestWinners = Raffle::where('status', 'finished')
-            ->whereNotNull('winner_ticket_id') // AQUI ESTÁ A CORREÇÃO PRINCIPAL
-            ->with('winnerTicket.user') // Otimização importante
+            ->whereNotNull('winner_ticket_id')
+            ->with('winnerTicket.user')
+            ->latest('drawn_at')
+            ->take(3)
+            ->get();
+
+        $this->featuredSkins = Product::where('type', 'in_stock')
+            ->where('status', 'available')
             ->latest()
             ->take(3)
             ->get();
+
+        // LÓGICA DO CONTADOR: Busca a rifa ativa que tem a data de sorteio mais próxima
+        $this->nextRaffleToEnd = Raffle::where('status', 'active')
+            ->whereNotNull('drawn_at') // Apenas rifas com data definida
+            ->orderBy('drawn_at', 'asc') // Ordena pela data mais próxima
+            ->first();
     }
 
     public function render()

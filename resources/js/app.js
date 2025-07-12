@@ -1,10 +1,21 @@
 import './bootstrap';
 
 // ========================================================================
-// JAVASCRIPT PARA O DESIGN PRODGIO - VERSÃO FINAL E CORRIGIDA
+// 1. IMPORTAÇÕES NECESSÁRIAS NO TOPO
 // ========================================================================
+import Alpine from 'alpinejs';
+import Splide from '@splidejs/splide';
+import '@splidejs/splide/css'; // Importa o CSS do carrossel
 
-// Função principal que configura todos os scripts da interface.
+// ========================================================================
+// 2. DISPONIBILIZAÇÃO GLOBAL
+// ========================================================================
+window.Alpine = Alpine;
+window.Splide = Splide; // Torna o Splide acessível em todo o site
+
+// ========================================================================
+// 3. SUA FUNÇÃO ORIGINAL (INTACTA)
+// ========================================================================
 const initializeProdgioScripts = () => {
     const header = document.getElementById('header');
     const navbarToggle = document.getElementById('navbar-toggle');
@@ -13,15 +24,12 @@ const initializeProdgioScripts = () => {
     const backToTopBtn = document.getElementById('back-to-top');
     const loadingScreen = document.querySelector('.loading-screen');
 
-    // Esconde a tela de loading com um pequeno delay.
     if (loadingScreen) {
         setTimeout(() => {
             loadingScreen.classList.add('hidden');
         }, 150);
     }
 
-    // --- CORREÇÃO DA LÓGICA DO MENU MOBILE ---
-    // A lógica de abrir/fechar o menu.
     const toggleMenu = () => {
         if (navbarToggle && navbarMobile) {
             navbarToggle.classList.toggle('active');
@@ -30,14 +38,11 @@ const initializeProdgioScripts = () => {
         }
     };
 
-    // Anexa o evento de clique ao botão do menu.
-    // Usamos uma verificação para garantir que o listener não seja duplicado.
     if (navbarToggle && !navbarToggle.dataset.listenerAttached) {
         navbarToggle.addEventListener('click', toggleMenu);
         navbarToggle.dataset.listenerAttached = 'true';
     }
 
-    // --- Lógica do Header, Scroll e Botão Voltar ao Topo ---
     const handleScroll = () => {
         if (header && window.scrollY > 50) {
             header.classList.add('scrolled');
@@ -68,13 +73,46 @@ const initializeProdgioScripts = () => {
     }
 };
 
+// ========================================================================
+// 4. NOVA FUNÇÃO PARA INICIALIZAR O CARROSSEL
+// ========================================================================
+const initializeSplideCarousels = () => {
+    const splideElements = document.querySelectorAll('.splide');
+    splideElements.forEach(element => {
+        if (!element.classList.contains('is-initialized')) {
+            new Splide(element, {
+                type: 'loop',
+                perPage: 4,
+                perMove: 1,
+                gap: '2rem',
+                pagination: false,
+                arrows: true,
+                breakpoints: {
+                    1280: { perPage: 3, gap: '1.5rem' },
+                    1024: { perPage: 2, gap: '1.5rem' },
+                    640: { perPage: 1, gap: '1rem' }
+                }
+            }).mount();
+        }
+    });
+};
 
-// --- EXECUÇÃO DOS SCRIPTS ---
 
-// 1. Executa na carga inicial da página.
-document.addEventListener('DOMContentLoaded', initializeProdgioScripts);
+// ========================================================================
+// 5. EXECUÇÃO E LISTENERS
+// ========================================================================
 
-// 2. Ouve o evento do Livewire e re-executa a função a cada navegação.
+// Inicia o Alpine.js (ESSENCIAL PARA O LIVEWIRE V3)
+Alpine.start();
+
+// Executa na carga inicial da página.
+document.addEventListener('DOMContentLoaded', () => {
+    initializeProdgioScripts();
+    initializeSplideCarousels();
+});
+
+// Ouve o evento do Livewire e re-executa as funções a cada navegação.
 document.addEventListener('livewire:navigated', () => {
     initializeProdgioScripts();
+    initializeSplideCarousels();
 });

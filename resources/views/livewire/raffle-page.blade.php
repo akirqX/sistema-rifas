@@ -12,6 +12,10 @@
     </style>
 
     <div class="container mx-auto px-4 py-8 xl:py-12">
+        {{-- Local para exibir mensagens de erro/info --}}
+        @if (session('error')) <div class="bg-red-500/10 border border-red-500/30 text-red-300 p-4 rounded-lg text-center mb-6">{{ session('error') }}</div> @endif
+        @if (session('info')) <div class="bg-blue-500/10 border border-blue-500/30 text-blue-300 p-4 rounded-lg text-center mb-6">{{ session('info') }}</div> @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div class="lg:col-span-2 space-y-8">
                 {{-- PAINEL DA IMAGEM E INFO --}}
@@ -100,26 +104,10 @@
         </div>
     </div>
 
-    {{-- MODAL DE GUEST CHECKOUT --}}
+    {{-- MODAL DE GUEST CHECKOUT ATUALIZADO --}}
     @if($showGuestModal)
-        <div
-            x-data="{ show: @entangle('showGuestModal') }"
-            x-show="show"
-            x-on:keydown.escape.window="show = false"
-            class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
-            style="display: none;"
-        >
-            <div
-                x-show="show"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 scale-90"
-                x-transition:enter-end="opacity-100 scale-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-90"
-                @click.away="show = false"
-                class="bg-bg-secondary rounded-2xl border border-border shadow-lg w-full max-w-md p-8"
-            >
+        <div x-data="{ show: @entangle('showGuestModal') }" x-show="show" x-on:keydown.escape.window="show = false" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" style="display: none;">
+            <div x-show="show" x-transition @click.away="show = false" class="bg-bg-secondary rounded-2xl border border-border shadow-lg w-full max-w-md p-8">
                 <h2 class="text-2xl font-bold text-white mb-2 text-center">Quase lá!</h2>
                 <p class="text-text-muted text-center mb-6">Precisamos de alguns dados para sua compra.</p>
 
@@ -134,6 +122,16 @@
                             <label for="guestEmail" class="form-label">E-mail</label>
                             <input type="email" id="guestEmail" wire:model="guestEmail" class="form-input" required>
                             @error('guestEmail') <span class="text-red-400 text-sm mt-1">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label for="guestPhone" class="form-label">Telefone (WhatsApp)</label>
+                            <input type="tel" id="guestPhone" wire:model="guestPhone" class="form-input" required placeholder="(XX) XXXXX-XXXX">
+                            @error('guestPhone') <span class="text-red-400 text-sm mt-1">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label for="guestCpf" class="form-label">CPF</label>
+                            <input type="text" id="guestCpf" wire:model="guestCpf" class="form-input" required placeholder="000.000.000-00">
+                            @error('guestCpf') <span class="text-red-400 text-sm mt-1">{{ $message }}</span> @enderror
                         </div>
                     </div>
 

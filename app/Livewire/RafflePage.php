@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Livewire;
 
 use App\Models\Order;
@@ -8,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Illuminate\Support\Arr;
+use Exception;
 
 class RafflePage extends Component
 {
@@ -22,8 +24,11 @@ class RafflePage extends Component
     public float $progressPercent = 0;
     public bool $isLoading = false;
     public bool $showGuestModal = false;
+
     public string $guestName = '';
     public string $guestEmail = '';
+    public string $guestCpf = '';
+    public string $guestPhone = '';
 
     public function mount(Raffle $raffle)
     {
@@ -57,39 +62,84 @@ class RafflePage extends Component
     public function startCheckout()
     {
         $this->validate(['selectedTickets' => ['required', 'array', 'min:1']], ['selectedTickets.required' => 'Você precisa selecionar pelo menos uma cota.']);
-        if (Auth::check()) {
-            return $this->createOrderAndRedirect(Auth::id());
+
+        if (!Auth::check()) {
+            $this->showGuestModal = true;
+            return;
         }
-        $this->showGuestModal = true;
+
+        $user = Auth::user();
+        if (!$user->cpf || !$user->phone) {
+            session()->flash('info', 'Para prosseguir com a compra, por favor, complete seu cadastro com CPF e Telefone.');
+            $this->redirect(route('profile.edit'), navigate: true);
+            return;
+        }
+
+        $this->createOrderAndRedirect($user->id);
     }
 
     public function processGuestCheckout()
     {
-        $this->validate(['guestName' => 'required|string|max:255', 'guestEmail' => 'required|email|max:255', 'selectedTickets' => 'required|array|min:1']);
-        return $this->createOrderAndRedirect(null, $this->guestName, $this->guestEmail);
+        $this->validate([
+            'guestName' => 'required|string|max:255',
+            'guestEmail' => 'required|email|max:255',
+            'guestCpf' => 'required|string|max:20',
+            'guestPhone' => 'required|string|max:20',
+        ]);
+
+        $this->createOrderAndRedirect(null, $this->guestName, $this->guestEmail, $this->guestCpf, $this->guestPhone);
     }
 
-    protected function createOrderAndRedirect(?int $userId, ?string $guestName = null, ?string $guestEmail = null)
+    protected function createOrderAndRedirect(?int $userId, ?string $guestName = null, ?string $guestEmail = null, ?string $guestCpf = null, ?string $guestPhone = null)
     {
         $this->isLoading = true;
         try {
-            $order = DB::transaction(function () use ($userId, $guestName, $guestEmail) {
+            $order = DB::transaction(function () use ($userId, $guestName, $guestEmail, $guestCpf, $guestPhone) {
                 $padding = strlen((string) $this->raffle->total_tickets);
                 $formattedSelectedTickets = array_map(fn($n) => str_pad($n, $padding, '0', STR_PAD_LEFT), $this->selectedTickets);
-                $ticketsToReserve = Ticket::where('raffle_id', $this->raffle->id)->whereIn('number', $formattedSelectedTickets)->lockForUpdate()->get();
-                if ($ticketsToReserve->where('status', 'available')->count() !== count($this->selectedTickets)) {
-                    throw new \Exception("Uma ou mais cotas selecionadas não estão mais disponíveis.");
+
+                $existingTickets = Ticket::where('raffle_id', $this->raffle->id)->whereIn('number', $formattedSelectedTickets)->lockForUpdate()->get();
+                if ($existingTickets->where('status', '!=', 'available')->isNotEmpty()) {
+                    throw new Exception("Uma ou mais cotas selecionadas não estão mais disponíveis.");
                 }
-                $order = Order::create(['user_id' => $userId, 'guest_name' => $guestName, 'guest_email' => $guestEmail, 'raffle_id' => $this->raffle->id, 'ticket_quantity' => count($this->selectedTickets), 'total_amount' => count($this->selectedTickets) * $this->raffle->ticket_price, 'status' => 'pending', 'expires_at' => now('America/Sao_Paulo')->addMinutes(15)]);
-                Ticket::whereIn('id', $ticketsToReserve->pluck('id'))->update(["status" => "reserved", "order_id" => $order->id, "user_id" => $userId]);
+
+                $orderData = [
+                    'user_id' => $userId,
+                    'raffle_id' => $this->raffle->id,
+                    'guest_name' => $guestName,
+                    'guest_email' => $guestEmail,
+                    'guest_cpf' => $guestCpf,
+                    'guest_phone' => $guestPhone,
+                    'ticket_quantity' => count($this->selectedTickets),
+                    'total_amount' => count($this->selectedTickets) * $this->raffle->ticket_price,
+                    'status' => 'pending',
+                    'expires_at' => now('America/Sao_Paulo')->addMinutes(15)
+                ];
+
+                if ($userId) {
+                    $user = Auth::user();
+                    $orderData['guest_name'] = $user->name;
+                    $orderData['guest_email'] = $user->email;
+                    $orderData['guest_cpf'] = $user->cpf;
+                    $orderData['guest_phone'] = $user->phone;
+                }
+
+                $order = Order::create($orderData);
+
+                foreach ($formattedSelectedTickets as $number) {
+                    Ticket::updateOrCreate(['raffle_id' => $this->raffle->id, 'number' => $number], ['status' => 'reserved', 'order_id' => $order->id, 'user_id' => $userId]);
+                }
                 return $order;
             });
-            $this->reset('selectedTickets', 'showGuestModal', 'guestName', 'guestEmail');
+
+            $this->reset('selectedTickets', 'showGuestModal', 'guestName', 'guestEmail', 'guestCpf', 'guestPhone');
             return $this->redirect(route('order.show', $order), navigate: true);
-        } catch (\Exception $e) {
+
+        } catch (Exception $e) {
             session()->flash('error', $e->getMessage());
             $this->isLoading = false;
             $this->showGuestModal = false;
+            return;
         }
     }
 
@@ -110,10 +160,12 @@ class RafflePage extends Component
             $this->selectedTickets = array_slice($this->selectedTickets, 0, $count);
         }
     }
+
     public function clearSelection(): void
     {
         $this->selectedTickets = [];
     }
+
     public function changePage(int $page)
     {
         $this->currentPage = $page;

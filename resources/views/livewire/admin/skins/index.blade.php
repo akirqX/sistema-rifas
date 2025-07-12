@@ -1,83 +1,67 @@
 <div>
-    <div class="container mx-auto px-4 py-8 sm:py-12">
+    <section class="hero-section py-20 text-center">
+        <h1 class="hero-title text-5xl font-extrabold">
+            Arsenal <span class="text-highlight">PRODGIO</span>
+        </h1>
+        <p class="hero-subtitle mt-4 text-xl">Skins inspecionadas e prontas para o seu inventário.</p>
+    </section>
 
-        {{-- Mensagem de Sucesso --}}
-        @if (session()->has('message'))
-            <div class="bg-green-500/20 text-green-300 p-4 rounded-lg mb-6">
-                {{ session('message') }}
+    <div class="container mx-auto px-4 pb-20">
+
+        {{-- BARRA DE FILTROS E ORDENAÇÃO --}}
+        <div class="flex flex-col md:flex-row gap-6 justify-between items-center mb-8 p-4 bg-panel-dark rounded-lg border border-border-subtle">
+            <div class="flex flex-wrap gap-x-6 gap-y-2 items-center">
+                <span class="font-semibold text-text-light mr-4">Filtrar por Tipo:</span>
+                @foreach($types as $type)
+                    <label class="flex items-center space-x-2 text-text-muted hover:text-white cursor-pointer">
+                        <input type="checkbox" wire:model.live="filterType" value="{{ $type }}" class="form-checkbox bg-panel-dark border-border-subtle text-primary-purple focus:ring-primary-purple">
+                        <span>{{ $type }}</span>
+                    </label>
+                @endforeach
             </div>
-        @endif
-
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-white">Gerenciar Skins (Arsenal)</h1>
-            <button wire:click="create()" class="btn-prodgio btn-primary">Adicionar Nova Skin</button>
+            <div>
+                <label for="sortBy" class="sr-only">Ordenar por</label>
+                <select id="sortBy" wire:model.live="sortBy" class="bg-bg-secondary border border-border-subtle rounded-lg focus:ring-primary-purple focus:border-primary-purple">
+                    <option value="latest">Mais Recentes</option>
+                    <option value="price_asc">Menor Preço</option>
+                    <option value="price_desc">Maior Preço</option>
+                </select>
+            </div>
         </div>
 
-        {{-- Tabela de Skins --}}
-        <div class="bg-panel-dark border border-border-subtle rounded-lg overflow-hidden">
-            <table class="w-full text-left text-text-muted">
-                {{-- ... (código da tabela que já está correto) ... --}}
-            </table>
+        <div wire:loading.flex class="w-full justify-center py-12">
+             <div class="text-white text-2xl font-semibold">Carregando Skins...</div>
+        </div>
+
+        <div wire:loading.remove>
+            @if($skins->count() > 0)
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    @foreach($skins as $skin)
+                        <div class="skin-card group relative bg-panel-dark border border-border-subtle rounded-lg overflow-hidden transition-all duration-300 hover:border-primary-purple hover:scale-105">
+                            <a href="{{ route('skins.show', $skin) }}">
+                                <img src="{{ $skin->getFirstMediaUrl('product_images', 'default') }}" alt="{{ $skin->name }}" class="w-full h-56 object-contain p-4 transition-transform duration-300 group-hover:scale-110">
+                            </a>
+                            <div class="p-4">
+                                <h3 class="font-bold text-white truncate">{{ $skin->name }}</h3>
+                                <p class="text-sm text-text-muted">{{ $skin->wear }}</p>
+                                <div class="mt-4 flex justify-between items-center">
+                                    <p class="text-xl font-bold text-white">R$ {{ number_format($skin->price, 2, ',', '.') }}</p>
+                                    <a href="{{ route('skins.show', $skin) }}" class="btn-prodgio btn-primary text-sm">Ver Detalhes</a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-12">
+                    {{ $skins->links() }}
+                </div>
+            @else
+                <div class="text-center py-20 bg-panel-dark border border-border-subtle rounded-lg">
+                    <h3 class="text-2xl font-bold text-white">Nenhuma skin encontrada para os filtros selecionados.</h3>
+                    <p class="mt-2 text-text-muted">Tente ajustar sua busca ou volte mais tarde!</p>
+                </div>
+            @endif
         </div>
     </div>
-
-    {{-- ========================================================== --}}
-    {{-- MODAL DE CRIAÇÃO/EDIÇÃO - A PARTE QUE FALTAVA              --}}
-    {{-- ========================================================== --}}
-    @if($isModalOpen)
-        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-            <div class="bg-panel-dark border border-border-subtle p-8 rounded-lg w-full max-w-2xl">
-                <h2 class="text-xl font-bold text-white mb-4">Adicionar Nova Skin</h2>
-                <form wire:submit.prevent="store" class="space-y-4">
-
-                    <div>
-                        <label for="name" class="block text-sm font-medium text-text-muted mb-1">Nome da Skin</label>
-                        <input type="text" id="name" wire:model.defer="name" class="input-prodgio w-full">
-                        @error('name') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="wear" class="block text-sm font-medium text-text-muted mb-1">Exterior (Wear)</label>
-                            <input type="text" id="wear" wire:model.defer="wear" class="input-prodgio w-full" placeholder="Ex: Field-Tested">
-                            @error('wear') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-                        <div>
-                            <label for="price" class="block text-sm font-medium text-text-muted mb-1">Preço (R$)</label>
-                            <input type="number" step="0.01" id="price" wire:model.defer="price" class="input-prodgio w-full">
-                            @error('price') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
-
-                    <div>
-                        <label for="description" class="block text-sm font-medium text-text-muted mb-1">Descrição</label>
-                        <textarea id="description" wire:model.defer="description" rows="3" class="input-prodgio w-full"></textarea>
-                    </div>
-
-                    <div>
-                        <label for="steam_inspect_link" class="block text-sm font-medium text-text-muted mb-1">Link de Inspeção (Opcional)</label>
-                        <input type="url" id="steam_inspect_link" wire:model.defer="steam_inspect_link" class="input-prodgio w-full">
-                        @error('steam_inspect_link') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div>
-                        <label for="image" class="block text-sm font-medium text-text-muted mb-1">Imagem da Skin</label>
-                        <input type="file" id="image" wire:model="image" class="input-prodgio w-full file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100">
-                        @error('image') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-
-                        <div wire:loading wire:target="image" class="text-sm text-gray-400 mt-2">Carregando imagem...</div>
-
-                        @if ($image)
-                            <div class="mt-4"><p class="text-sm text-text-muted mb-2">Pré-visualização:</p><img src="{{ $image->temporaryUrl() }}" class="rounded-lg max-h-40"></div>
-                        @endif
-                    </div>
-
-                    <div class="flex justify-end gap-4 pt-4">
-                        <button type="button" wire:click="$set('isModalOpen', false)" class="btn-prodgio btn-secondary">Cancelar</button>
-                        <button type="submit" class="btn-prodgio btn-primary">Salvar Skin</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    @endif
 </div>

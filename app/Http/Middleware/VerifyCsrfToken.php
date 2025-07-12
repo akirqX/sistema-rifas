@@ -12,10 +12,7 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        // ==========================================================================
-        // A CORREÇÃO DEFINITIVA: Adicionamos a nossa rota de webhook aqui.
-        // Isso diz ao Laravel para não exigir um token de segurança para esta rota.
-        // ==========================================================================
-        '/webhook',
+        // CORREÇÃO: Removida a barra inicial. O Laravel compara o padrão sem ela.
+        'webhook',
     ];
 }

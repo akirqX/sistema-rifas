@@ -1,3 +1,14 @@
+/* =============================================
+   PRODGIO CSS - Versão Refatorada & Aprimorada
+   ---------------------------------------------
+   Refatoração, melhorias visuais e microinterações
+   Alinhamento premium com referência visual enviada
+   - Gradientes e glow aprimorados
+   - Títulos impactantes
+   - Navbar e botões animados e modernos
+   - Responsividade preservada
+   - Código organizado, comentado e pronto para expansão
+   ============================================= */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -4460,4 +4471,1057 @@ body {
     cursor: not-allowed;
     text-decoration: line-through;
     opacity: 0.6;
+}
+
+/* ===================================
+   ESTILOS ADICIONAIS PARA A PÁGINA DA RIFA
+   =================================== */
+
+/* resources/css/app.css (adicione no final) */
+
+/* ====================================================================== */
+/* MELHORIAS VISUAIS PARA A SEÇÃO HERÓI (V3 - GRADIENTE ANIMADO)         */
+/* ====================================================================== */
+
+.hero-section-v3 {
+    /* Cor de fundo base caso a animação não carregue */
+    background-color: #0E0F1B;
+}
+
+/* O container do gradiente animado */
+.animated-gradient-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    /* Define um gradiente com 4 cores da sua paleta */
+    background: linear-gradient(-45deg, #0e0f1b, #1d1732, #3c2f6b, #8b5cf6);
+    background-size: 400% 400%;
+    /* Tamanho grande para a animação ter espaço para se mover */
+    animation: gradient-flow 15s ease infinite;
+    /* Nome da animação, duração e loop */
+}
+
+/* A animação que move o gradiente */
+@keyframes gradient-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Efeito de "glow" (brilho) mais sutil e profissional para o texto */
+.hero-title-v3 {
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.text-highlight-v3 {
+    /* Define a cor principal do texto */
+    color: var(--color-primary-purple-light, #A78BFA);
+    /* Adiciona um brilho sutil ao redor com a mesma cor */
+    text-shadow:
+        0 0 10px var(--color-primary-purple, #8B5CF6),
+        0 0 20px rgba(139, 92, 246, 0.5);
+}
+
+.hero-subtitle-v3 {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Estilo do contador (mantido da versão anterior, funciona bem) */
+.hero-section-v3 .countdown-wrapper {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background-color: rgba(20, 21, 38, 0.3);
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: inline-block;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* resources/css/app.css */
+
+/* ... seu CSS existente ... */
+
+/* ====================================================================== */
+/* ESTILOS PARA O FUNDO COM IFRAME DO YOUTUBE                           */
+/* ====================================================================== */
+
+.hero-video-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+    /* Esconde qualquer parte do iframe que transborde */
+}
+
+.hero-video-background iframe {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    /* Truque: Aumenta a escala do vídeo para garantir que as bordas pretas fiquem fora da tela */
+    transform: translate(-50%, -50%) scale(1.4);
+    pointer-events: none;
+}
+
+/* resources/css/app.css */
+
+/* ... seu css existente ... */
+
+/* Estilo para o botão de ação secundário na navbar */
+.navbar-cta.secondary {
+    background-color: transparent;
+    border: 2px solid var(--color-primary-purple);
+    color: var(--color-primary-purple-light);
+}
+
+.navbar-cta.secondary:hover {
+    background-color: var(--color-primary-purple);
+    color: white;
+}
+
+``` --- ### **Ação 2: Efeito "Glassmorphism"(Vidro Embaçado) na Navbar** Vamos fazer o header ficar semi-transparente e embaçar o conteúdo que passa por trás quando o usuário rola a página. A sua lógica JS que adiciona a classe `.scrolled` é a chave aqui. **Adicione este CSS no final do seu `resources/css/app.css`:** ```css
+/* resources/css/app.css */
+
+/* ... seu css existente ... */
+
+/* Efeito de "vidro embaçado" para a navbar quando a página é rolada */
+.header.scrolled .navbar {
+    /* Cor de fundo semi-transparente */
+    background-color: rgba(20, 21, 38, 0.65);
+    /* Usando a cor de fundo do seu painel, mas com transparência */
+
+    /* A mágica do desfoque */
+    -webkit-backdrop-filter: blur(10px);
+    /* Para Safari */
+    backdrop-filter: blur(10px);
+
+    /* Uma borda sutil para dar acabamento */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* Sombra para dar profundidade */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+
+/* === Melhorias de Glow, Gradiente e Microinterações === */
+
+/* Botões principais e CTA */
+.cta-primary,
+.navbar-cta {
+    background: linear-gradient(90deg, #B56AFF, #6C1BFF 80%);
+    box-shadow: 0 4px 20px 0 rgba(150, 0, 255, 0.15);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(.57, .21, .69, 1.25);
+}
+
+.cta-primary:hover,
+.navbar-cta:hover {
+    box-shadow: 0 0 24px 4px #B56AFF88, 0 4px 20px 0 rgba(150, 0, 255, 0.25);
+    filter: brightness(1.08) saturate(1.05);
+}
+
+.cta-primary::before,
+.navbar-cta::before {
+    content: "";
+    position: absolute;
+    left: -60%;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.0) 100%);
+    filter: blur(1px);
+    transition: left 0.7s cubic-bezier(.57, .21, .69, 1.25);
+    pointer-events: none;
+}
+
+.cta-primary:hover::before,
+.navbar-cta:hover::before {
+    left: 110%;
+}
+
+/* Títulos com highlight gradiente e shadow extra */
+.hero-title .highlight,
+.section-title {
+    background: linear-gradient(90deg, #D13EFF, #6C1BFF 70%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900 !important;
+    letter-spacing: -1px;
+    text-shadow: 0 2px 20px #D13EFF22;
+}
+
+/* Navbar link ativo e hover com glow underline */
+.nav-link.active,
+.nav-link:hover {
+    color: #D13EFF;
+    text-shadow: 0 2px 16px #D13EFF44;
+}
+
+.nav-link.active::after,
+.nav-link:hover::after {
+    content: "";
+    display: block;
+    margin: 0 auto;
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, #D13EFF, #6C1BFF 70%);
+    border-radius: 2px;
+    box-shadow: 0 2px 10px #D13EFF44;
+}
+
+/* Detalhe suave para partículas e fundo animado */
+.hero-bg-animation {
+    opacity: 0.85 !important;
+    z-index: 1 !important;
+}
+
+.hero-particles,
+.hero-canvas {
+    z-index: 2 !important;
+}
+
+/* Legibilidade e suavidade para o texto base */
+body {
+    text-shadow: 0 1px 8px #0003;
+}
+
+/* Melhoria de responsividade extra para botões grandes em mobile */
+@media (max-width: 480px) {
+
+    .cta-primary,
+    .navbar-cta {
+        font-size: 1.1rem;
+        padding: 0.9rem 1.2rem;
+    }
+}
+
+/* === Fim do bloco de melhorias premium === */
+
+/* --- Formulário Modal Premium --- */
+
+.modal-content,
+.form-modal,
+.form-card {
+    background: #191622;
+    border-radius: 18px;
+    box-shadow: 0 12px 32px 0 #0009, 0 1px 2px #B56AFF22;
+    padding: 2.5rem 2rem;
+    color: #fff;
+    min-width: 350px;
+    max-width: 430px;
+    margin: auto;
+}
+
+.form-modal h2,
+.form-modal h3,
+.form-card h2 {
+    color: #fff;
+    font-size: 1.45rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin-bottom: 1.8rem;
+    font-family: 'Archivo Black', 'Montserrat', sans-serif;
+}
+
+/* Labels */
+.form-label,
+label {
+    font-size: 1.09rem;
+    color: #e2e2e2;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+    letter-spacing: 0.01em;
+}
+
+/* Inputs e textarea premium */
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="password"],
+textarea,
+.form-input,
+.form-select {
+    width: 100%;
+    background: linear-gradient(92deg, #23213a 60%, #2d2456 100%);
+    border: 1.5px solid #2e2e3b;
+    color: #fff;
+    font-size: 1.13rem;
+    font-family: inherit;
+    font-weight: 600;
+    border-radius: 9px;
+    padding: 0.98rem 1rem;
+    margin-bottom: 1.25rem;
+    outline: none;
+    transition:
+        border-color .18s cubic-bezier(.67, .21, .69, 1.25),
+        box-shadow .26s cubic-bezier(.67, .21, .69, 1.25),
+        background .19s;
+    box-shadow: 0 1px 8px #0002;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+.form-input:focus,
+.form-select:focus {
+    border-color: #B56AFF;
+    background: linear-gradient(90deg, #251943 60%, #4426a2 100%);
+    box-shadow: 0 0 0 2.5px #B56AFF44, 0 6px 24px #B56AFF22;
+    color: #fff;
+}
+
+textarea {
+    min-height: 70px;
+    resize: vertical;
+}
+
+/* Campo duplo (lado a lado) */
+.form-row,
+.input-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.form-row>* {
+    flex: 1 1 0;
+    margin-bottom: 0 !important;
+}
+
+/* Botões */
+.button,
+.btn,
+.modal-footer button,
+.form-modal .btn,
+.form-card .btn {
+    font-size: 1.08rem;
+    font-family: inherit;
+    border: none;
+    border-radius: 8px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition:
+        background .15s,
+        box-shadow .17s,
+        color .15s,
+        transform .15s;
+    min-width: 120px;
+    padding: 0.98rem 1.25rem;
+    margin-top: 0.5rem;
+}
+
+.btn-primary,
+.save-btn,
+.modal-footer .btn-primary,
+.modal-footer .save-btn,
+.form-modal .save-btn {
+    background: linear-gradient(90deg, #B56AFF 35%, #6C1BFF 95%);
+    color: #fff;
+    box-shadow: 0 0 16px 2px #B56AFF33;
+    position: relative;
+    z-index: 1;
+}
+
+.btn-primary:hover,
+.save-btn:hover,
+.modal-footer .btn-primary:hover,
+.form-modal .save-btn:hover {
+    background: linear-gradient(90deg, #6C1BFF 15%, #B56AFF 100%);
+    box-shadow: 0 0 40px 10px #B56AFF99;
+    transform: translateY(-2px) scale(1.04);
+    filter: brightness(1.08);
+}
+
+.btn-cancel,
+.cancel-btn,
+.modal-footer .btn-cancel,
+.form-modal .cancel-btn {
+    background: #23213a;
+    color: #fff;
+    border: 1.5px solid #44415e;
+    margin-right: 1rem;
+}
+
+.btn-cancel:hover,
+.cancel-btn:hover,
+.modal-footer .btn-cancel:hover,
+.form-modal .cancel-btn:hover {
+    background: #181627;
+    border-color: #B56AFF88;
+    color: #fff;
+    box-shadow: 0 0 8px #B56AFF33;
+}
+
+/* Upload elegante */
+input[type="file"],
+.file-upload {
+    display: none;
+}
+
+.file-label,
+.upload-btn {
+    background: linear-gradient(90deg, #25213b 70%, #B56AFF22 100%);
+    color: #B56AFF;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 0.93rem 1.15rem;
+    cursor: pointer;
+    display: inline-block;
+    margin-bottom: 1rem;
+    border: 1.5px solid #B56AFF33;
+    transition: background .18s, color .17s, border .14s;
+}
+
+.file-label:hover,
+.upload-btn:hover {
+    background: #B56AFF44;
+    color: #fff;
+    border-color: #B56AFF;
+}
+
+/* Feedback do arquivo escolhido */
+.file-chosen,
+.chosen-file {
+    color: #c6b3f7;
+    font-size: 0.97rem;
+    margin-left: 0.8rem;
+}
+
+/* Responsividade */
+@media (max-width: 540px) {
+
+    .modal-content,
+    .form-modal,
+    .form-card {
+        padding: 1.1rem 0.6rem;
+        min-width: unset;
+        max-width: 99vw;
+    }
+
+    .form-row,
+    .input-row {
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .button,
+    .btn {
+        min-width: unset;
+        width: 100%;
+        margin-right: 0;
+    }
+}
+
+/* Foco visual para acessibilidade */
+input:focus-visible,
+textarea:focus-visible {
+    outline: 2.5px solid #B56AFF;
+    outline-offset: 2.5px;
+}
+
+/* ======================================================================== */
+/* CSS FINAL v4 - Fiel à Identidade Visual da Agência PRODGIO               */
+/* Cores, brilhos e transições alinhados com a referência visual.           */
+/* ======================================================================== */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------------ */
+/* 1. PALETA DE CORES E VARIÁVEIS GLOBAIS (FIEL À REFERÊNCIA)               */
+/* ------------------------------------------------------------------------ */
+:root {
+    /* Cores Primárias (Extraídas da Referência) */
+    --color-primary: #9333ea;
+    /* Roxo Elétrico Principal */
+    --color-primary-rgb: 147, 51, 234;
+    /* Para o efeito de brilho (glow) */
+
+    /* Fundos e Painéis */
+    --color-bg-body: #0d0c12;
+    /* Preto profundo com um toque de roxo */
+    --color-bg-panel: #1e1b26;
+    /* Painel/Card principal (ex: serviços) */
+
+    /* Bordas */
+    --color-border-subtle: #2a2733;
+    /* Borda sutil para elementos */
+    --color-border-active: rgba(var(--color-primary-rgb), 0.5);
+
+    /* Cores de Texto */
+    --color-text-light: #fdfdfd;
+    --color-text-muted: #a09cb0;
+
+    /* Variáveis antigas para compatibilidade */
+    --color-primary-light: var(--color-primary);
+    --color-primary-dark: #7e22ce;
+    --color-bg-primary: var(--color-bg-body);
+    --color-bg-secondary: var(--color-bg-panel);
+    --color-border: var(--color-border-subtle);
+
+    /* Tipografia */
+    --font-family-primary: 'Montserrat', -apple-system, sans-serif;
+    --font-family-heading: 'Archivo Black', -apple-system, sans-serif;
+
+    /* Outras Variáveis */
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --transition-base: 0.3s ease;
+    --shadow-glow: 0 0 25px rgba(var(--color-primary-rgb), 0.35);
+    --shadow-glow-hover: 0 0 40px rgba(var(--color-primary-rgb), 0.55);
+    --z-fixed: 1030;
+}
+
+/* ------------------------------------------------------------------------ */
+/* 2. ESTILOS GLOBAIS E RESETS                                              */
+/* ------------------------------------------------------------------------ */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+}
+
+body {
+    background-color: var(--color-bg-body);
+    color: var(--color-text-muted);
+    font-family: var(--font-family-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ------------------------------------------------------------------------ */
+/* 3. HEADER E NAVEGAÇÃO                                                    */
+/* ------------------------------------------------------------------------ */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: var(--z-fixed);
+    transition: background-color 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease;
+}
+
+.header.scrolled {
+    background-color: rgba(13, 12, 18, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.navbar-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo-image {
+    height: 40px;
+    transition: transform var(--transition-base);
+}
+
+.navbar-logo:hover .logo-image {
+    transform: scale(1.05);
+}
+
+.nav-links {
+    display: none;
+    /* Escondido por padrão, aparece em telas maiores */
+    list-style: none;
+    gap: 2rem;
+}
+
+@media (min-width: 768px) {
+    .nav-links {
+        display: flex;
+    }
+}
+
+.nav-link {
+    color: var(--color-text-light);
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.5rem 0;
+    position: relative;
+    transition: color var(--transition-base), text-shadow var(--transition-base);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    width: 0%;
+    height: 2px;
+    background-color: var(--color-primary);
+    box-shadow: var(--shadow-glow);
+    transition: width var(--transition-base);
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--color-text-light);
+    text-shadow: 0 0 10px rgba(var(--color-primary-rgb), 0.7);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+    width: 100%;
+}
+
+/* ------------------------------------------------------------------------ */
+/* 4. BOTÕES (O CORAÇÃO DA IDENTIDADE VISUAL)                               */
+/* ------------------------------------------------------------------------ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1.75rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, background-color 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+/* Botão Primário (Roxo com Glow) */
+.cta-primary {
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    box-shadow: var(--shadow-glow);
+}
+
+.cta-primary:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: var(--shadow-glow-hover);
+}
+
+/* Botão Secundário (Apenas Borda) */
+.cta-secondary {
+    background-color: transparent;
+    color: var(--color-text-light);
+    border-color: var(--color-border-subtle);
+}
+
+.cta-secondary:hover {
+    background-color: var(--color-bg-panel);
+    border-color: var(--color-primary);
+    transform: translateY(-3px);
+}
+
+.navbar-cta {
+    padding: 0.7rem 1.5rem;
+}
+
+/* ------------------------------------------------------------------------ */
+/* 5. SEÇÃO HERO                                                            */
+/* ------------------------------------------------------------------------ */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    padding: 6rem 2rem;
+}
+
+.hero-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 3rem;
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    /* Padrão mobile */
+}
+
+@media (min-width: 992px) {
+    .hero-container {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        text-align: left;
+    }
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: rgba(var(--color-primary-rgb), 0.1);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.3);
+    border-radius: 999px;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title {
+    font-family: var(--font-family-heading);
+    font-size: clamp(2.8rem, 6vw, 4.2rem);
+    color: var(--color-text-light);
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title .highlight {
+    color: var(--color-primary);
+    text-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.5);
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    max-width: 55ch;
+    margin: 0 auto 2rem auto;
+}
+
+@media (min-width: 992px) {
+    .hero-subtitle {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
+
+.hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    justify-content: center;
+}
+
+@media (min-width: 992px) {
+    .hero-cta {
+        justify-content: flex-start;
+    }
+}
+
+.hero-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    justify-content: center;
+}
+
+@media (min-width: 992px) {
+    .hero-stats {
+        justify-content: flex-start;
+    }
+}
+
+.stat-item .stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-text-light);
+}
+
+.stat-item .stat-label {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.hero-social {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+@media (min-width: 992px) {
+    .hero-social {
+        justify-content: flex-start;
+    }
+}
+
+.social-link {
+    color: var(--color-text-muted);
+    font-size: 1.5rem;
+    transition: color var(--transition-base), transform var(--transition-base);
+}
+
+.social-link:hover {
+    color: var(--color-primary);
+    transform: scale(1.1);
+}
+
+.hero-visual-placeholder {
+    width: 100%;
+    height: 100%;
+    min-height: 400px;
+    background-color: rgba(var(--color-primary-rgb), 0.05);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-xl);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 50px rgba(var(--color-primary-rgb), 0.1) inset;
+}
+
+.particles-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ------------------------------------------------------------------------ */
+/* 6. SEÇÃO DE SERVIÇOS E ELEMENTOS DE CARD                                 */
+/* ------------------------------------------------------------------------ */
+.section {
+    padding: 5rem 2rem;
+}
+
+.section-header {
+    text-align: center;
+    max-width: 60ch;
+    margin: 0 auto 4rem auto;
+}
+
+.section-header .section-title {
+    font-family: var(--font-family-heading);
+    font-size: clamp(2.2rem, 5vw, 2.8rem);
+    color: var(--color-text-light);
+    margin-bottom: 1rem;
+}
+
+.section-header .section-subtitle {
+    font-size: 1.1rem;
+    color: var(--color-text-muted);
+}
+
+.tab-buttons {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+
+.tab-button {
+    background-color: var(--color-bg-panel);
+    color: var(--color-text-muted);
+    border-color: var(--color-border-subtle);
+}
+
+.tab-button:hover:not(.active) {
+    border-color: var(--color-primary);
+    color: var(--color-text-light);
+}
+
+.tab-button.active {
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    box-shadow: var(--shadow-glow);
+    border-color: var(--color-primary);
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.service-card {
+    background-color: var(--color-bg-panel);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+}
+
+.service-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--color-primary);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.service-icon {
+    font-size: 2rem;
+    color: var(--color-primary);
+    background-color: rgba(var(--color-primary-rgb), 0.1);
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.service-card h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin-bottom: 0.5rem;
+}
+
+.service-card p {
+    margin-bottom: 1rem;
+    color: var(--color-text-muted);
+}
+
+.service-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.service-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.service-features li::before {
+    content: '✓';
+    color: var(--color-primary);
+    font-weight: bold;
+}
+
+/* ------------------------------------------------------------------------ */
+/* 7. RESPONSIVIDADE E MENU MOBILE                                          */
+/* ------------------------------------------------------------------------ */
+.navbar-actions {
+    display: none;
+    /* Escondido por padrão, aparece em telas maiores */
+}
+
+@media (min-width: 768px) {
+    .navbar-actions {
+        display: flex;
+    }
+}
+
+.navbar-toggle {
+    display: flex;
+    /* Visível por padrão, some em telas maiores */
+    z-index: 9999;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .navbar-toggle {
+        display: none;
+    }
+}
+
+.toggle-line {
+    width: 28px;
+    height: 3px;
+    background-color: var(--color-text-light);
+    border-radius: 3px;
+    margin: 4px 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.navbar-toggle.active .toggle-line:nth-child(1) {
+    transform: rotate(45deg) translate(7px, 6px);
+}
+
+.navbar-toggle.active .toggle-line:nth-child(2) {
+    opacity: 0;
+}
+
+.navbar-toggle.active .toggle-line:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
+.navbar-mobile {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    /* Começa fora da tela */
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(13, 12, 18, 0.95);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: calc(var(--z-fixed) - 1);
+    padding: 6rem 2rem 2rem;
+    transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.navbar-mobile.active {
+    left: 0;
+    /* Entra na tela */
+}
+
+.mobile-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+}
+
+.mobile-links a {
+    color: var(--color-text-light);
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 1rem;
+    display: block;
+    transition: color var(--transition-base), background-color var(--transition-base);
+    border-radius: var(--radius-md);
+}
+
+.mobile-links a:hover,
+.mobile-links a.active {
+    color: var(--color-primary);
+    background-color: rgba(var(--color-primary-rgb), 0.1);
 }
